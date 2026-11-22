@@ -1,0 +1,389 @@
+/*
+ * CSS 3D bookcase.
+ * Each book is a box: spine (front), cover (right side), page block (top).
+ * Shelves are drawn as a repeating background so rows wrap naturally.
+ */
+
+.case {
+  --scale: 1;
+  --row: 300px;
+  --plank: 18px;
+  --frame: 18px;
+  position: relative;
+  border-radius: 6px;
+  box-shadow:
+    0 40px 80px -30px rgb(0 0 0 / 0.8),
+    0 0 0 1px rgb(0 0 0 / 0.4);
+}
+
+@media (max-width: 640px) {
+  .case {
+    --scale: 0.72;
+    --row: 228px;
+    --plank: 14px;
+    --frame: 10px;
+  }
+}
+
+.crown {
+  height: calc(var(--frame) + 10px);
+  border-radius: 6px 6px 0 0;
+  background: linear-gradient(to bottom, #6e4c33, #563a27 55%, #3e291b);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12);
+}
+
+.plinth {
+  height: calc(var(--frame) + 14px);
+  border-radius: 0 0 6px 6px;
+  background: linear-gradient(to bottom, #4f3524, #3a2619);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
+}
+
+.body {
+  position: relative;
+  display: flex;
+}
+
+.side {
+  width: var(--frame);
+  flex-shrink: 0;
+  background: linear-gradient(to right, #5c3e2a, #6e4c33 40%, #4a3122);
+}
+
+.side + .shelves + .side {
+  background: linear-gradient(to left, #5c3e2a, #6e4c33 40%, #4a3122);
+}
+
+.shelves {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: calc(var(--row) * 3);
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  column-gap: calc(3px * var(--scale));
+  padding-inline: clamp(10px, 3vw, 36px);
+  background:
+    /* shadow each plank casts onto the wall of the row below */
+    repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.55) 0, rgb(0 0 0 / 0) 26px, rgb(0 0 0 / 0) var(--row)),
+    /* planks */
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(var(--row) - var(--plank)),
+      #8a6545 calc(var(--row) - var(--plank)),
+      #9b7451 calc(var(--row) - var(--plank) + 2px),
+      #634229 calc(var(--row) - var(--plank) + 3px),
+      #4d3320 calc(var(--row) - 4px),
+      #2c1c11 var(--row)
+    ),
+    /* faint vertical grain on the back panel */
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.012) 0 2px, transparent 2px 9px),
+    #1f150e;
+}
+
+/* Warm lamp light falling on the case */
+.glow {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 65% 55% at 50% 0%, rgb(255 210 150 / 0.13), transparent 70%);
+  mix-blend-mode: screen;
+  z-index: 20;
+}
+
+/* One position on a shelf */
+.slot {
+  position: relative;
+  height: var(--row);
+  padding-bottom: var(--plank);
+  display: flex;
+  align-items: flex-end;
+  perspective: 1100px;
+  perspective-origin: 50% -30%;
+}
+
+.slot:hover,
+.slot:focus-within {
+  z-index: 10;
+}
+
+.link {
+  display: block;
+  border-radius: 3px;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---------------------------------------------------------------- the book */
+
+.book {
+  --w: calc(var(--t) * var(--scale) * 1px);
+  --hh: calc(var(--h) * var(--scale) * 1px);
+  --dd: calc(var(--d) * var(--scale) * 1px);
+  position: relative;
+  width: var(--w);
+  height: var(--hh);
+  transform-style: preserve-3d;
+  transform: translateZ(calc(var(--dd) * -0.5));
+  transition: transform 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.face {
+  position: absolute;
+  backface-visibility: hidden;
+}
+
+.spine {
+  inset: 0;
+  transform: translateZ(calc(var(--dd) * 0.5));
+  border-radius: 2px 2px 1px 1px;
+  background:
+    linear-gradient(
+      90deg,
+      rgb(0 0 0 / 0.42) 0%,
+      rgb(255 255 255 / 0.06) 18%,
+      rgb(255 255 255 / 0.13) 36%,
+      rgb(0 0 0 / 0.02) 62%,
+      rgb(0 0 0 / 0.45) 100%
+    ),
+    radial-gradient(circle at 30% 20%, rgb(255 255 255 / 0.05), transparent 60%),
+    var(--leather);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+
+.band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: calc(3px * var(--scale));
+  background: var(--band);
+  box-shadow: 0 1px 0 rgb(0 0 0 / 0.35);
+}
+
+.title {
+  position: absolute;
+  top: calc(34px * var(--scale));
+  bottom: calc(44px * var(--scale));
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  /* Rotate all glyphs together so punctuation (’ , :) lines up with the letters. */
+  text-orientation: sideways;
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-weight: 600;
+  font-size: calc(15px * var(--scale));
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: var(--foil);
+  text-shadow: 0 1px 0 rgb(0 0 0 / 0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.count {
+  position: absolute;
+  bottom: calc(16px * var(--scale));
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: calc(9px * var(--scale));
+  letter-spacing: 0.08em;
+  color: var(--foil);
+  opacity: 0.75;
+}
+
+.cover {
+  top: 0;
+  height: 100%;
+  width: var(--dd);
+  left: calc((var(--w) - var(--dd)) / 2);
+  transform: rotateY(90deg) translateZ(calc(var(--w) * 0.5));
+  border-radius: 1px 3px 3px 1px;
+  background:
+    linear-gradient(90deg, rgb(0 0 0 / 0.4), rgb(0 0 0 / 0) 12%),
+    linear-gradient(160deg, rgb(255 255 255 / 0.08), transparent 45%),
+    var(--leather);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: calc(14px * var(--scale)) calc(12px * var(--scale));
+  gap: calc(8px * var(--scale));
+}
+
+.coverFrame {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  border: 1px solid var(--band);
+  padding: calc(3px * var(--scale));
+  background: rgb(0 0 0 / 0.15);
+}
+
+.coverFrame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.coverTitle {
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: calc(13px * var(--scale));
+  line-height: 1.15;
+  text-align: center;
+  color: var(--foil);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.top {
+  left: 0;
+  width: var(--w);
+  height: var(--dd);
+  top: calc((var(--hh) - var(--dd)) / 2);
+  transform: rotateX(90deg) translateZ(calc(var(--hh) * 0.5));
+  background:
+    repeating-linear-gradient(90deg, #efe6d3 0 1px, #e2d6bd 1px 2px),
+    #ece2cc;
+  box-shadow: inset 0 0 0 calc(3px * var(--scale)) var(--leather);
+}
+
+/* Contact shadow on the plank */
+.shadow {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--plank) - 4px);
+  width: 120%;
+  height: 10px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgb(0 0 0 / 0.55), transparent 70%);
+  pointer-events: none;
+  transition: opacity 400ms ease, transform 400ms ease;
+}
+
+/* ---------------------------------------------------------------- interaction */
+
+/* Pull the book forward and turn it to show the cover — only on devices with hover. */
+@media (hover: hover) {
+  .link:hover .book {
+    transform: translateZ(calc(var(--dd) * -0.5 + 34px)) translateY(-10px) rotateY(-28deg);
+  }
+  .link:hover + .shadow,
+  .slot:hover .shadow {
+    opacity: 0.5;
+    transform: translateX(-35%) scaleX(1.4);
+  }
+}
+
+.link:focus-visible .book {
+  transform: translateZ(calc(var(--dd) * -0.5 + 34px)) translateY(-10px) rotateY(-28deg);
+}
+
+.link:focus-visible .spine {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.link:active .book {
+  transform: translateZ(calc(var(--dd) * -0.5 + 20px)) translateY(-4px) rotateY(-12deg) scale(0.98);
+  transition-duration: 150ms;
+}
+
+/* ---------------------------------------------------------------- "new album" book */
+
+.newBook {
+  width: calc(60px * var(--scale));
+  height: calc(214px * var(--scale));
+  border: 1.5px dashed rgb(212 187 138 / 0.45);
+  border-radius: 3px;
+  background: rgb(255 255 255 / 0.025);
+  color: var(--gold-soft);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: calc(14px * var(--scale));
+  padding-top: calc(18px * var(--scale));
+  transition:
+    transform 400ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 200ms ease,
+    border-color 200ms ease;
+}
+
+.newBook span {
+  writing-mode: vertical-rl;
+  text-orientation: sideways;
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: calc(16px * var(--scale));
+  letter-spacing: 0.06em;
+}
+
+@media (hover: hover) {
+  .link:hover .newBook {
+    transform: translateY(-8px);
+    background: rgb(212 187 138 / 0.08);
+    border-color: rgb(212 187 138 / 0.8);
+  }
+}
+
+.link:focus-visible .newBook {
+  transform: translateY(-8px);
+  border-color: var(--gold);
+  border-style: solid;
+}
+
+/* ---------------------------------------------------------------- opening from the shelf */
+
+/* Shelf entrance: books rise onto the shelf, staggered. */
+.slot {
+  animation: shelf-rise 560ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 28ms);
+}
+@keyframes shelf-rise {
+  from {
+    opacity: 0;
+    translate: 0 18px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+.shelves .slot {
+  transition:
+    opacity 380ms ease,
+    filter 380ms ease;
+}
+
+/* While one book is being taken out, the rest of the shelf recedes. */
+.dimmed .slot:not(.opening) {
+  opacity: 0.32;
+  filter: saturate(0.5) brightness(0.8);
+}
+
+.opening {
+  z-index: 30;
+}
+
+/* Pull the chosen book out, turn its cover to the reader, and lift it. */
+.opening .book,
+.opening .link:hover .book,
+.opening .link:focus-visible .book {
+  transform: translateZ(calc(var(--dd) * -0.5 + 150px)) translateY(-26px) rotateY(-82deg) scale(1.18);
+  transition: transform 620ms cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+
+.opening .shadow {
+  opacity: 0;
+}
