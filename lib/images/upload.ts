@@ -18,7 +18,7 @@ export function uploadWithProgress(
     xhr.setRequestHeader("content-type", contentType);
     xhr.setRequestHeader("cache-control", "max-age=3600");
     xhr.setRequestHeader("x-upsert", "false");
-    const apikey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const apikey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
     if (apikey) xhr.setRequestHeader("apikey", apikey);
 
     xhr.upload.onprogress = (e) => {
