@@ -26,21 +26,21 @@ async function ManageContent({ params }: { params: PageProps<"/albums/[id]/photo
           <Link
             href={`/albums/${album.id}`}
             transitionTypes={NAV_BACK}
-            className="inline-flex items-center gap-1.5 text-sm text-gold-soft/80 transition-colors hover:text-ivory"
+            className="inline-flex items-center gap-1.5 rounded-full py-1 pr-2 text-sm font-medium text-silver transition-colors hover:text-aurora"
           >
             <ArrowLeft className="size-4" aria-hidden /> Back to album
           </Link>
-          <h1 className="mt-3 truncate font-serif text-4xl font-medium tracking-tight text-ivory sm:text-5xl">
+          <h1 className="mt-3 truncate title-gilt font-ornate text-[32px] leading-[1.12] font-normal text-ivory sm:text-[42px]">
             {album.title}
           </h1>
-          <p className="mt-1 text-sm text-gold-soft/70">
+          <p className="mt-1 text-sm text-silver/80">
             {photos.length} {photos.length === 1 ? "photograph" : "photographs"}
           </p>
         </div>
         <Link
           href={`/albums/${album.id}`}
           transitionTypes={NAV_BACK}
-          className="inline-flex h-10 items-center gap-2 rounded-lg border border-gold/30 px-3.5 text-sm text-ivory transition-colors hover:bg-white/5"
+          className="inline-flex h-10 items-center gap-2 rounded-full border border-ivory/15 px-4 text-sm font-semibold text-ivory transition-colors hover:border-aurora/45 hover:bg-aurora/[0.07] hover:text-aurora"
         >
           <BookOpen className="size-4" aria-hidden /> View album
         </Link>
@@ -54,7 +54,7 @@ export default function ManagePhotosPage({ params }: PageProps<"/albums/[id]/pho
   return (
     <main className="mx-auto w-full max-w-6xl px-4 pt-6 pb-16 sm:px-6">
       <PageTransition>
-        <Suspense fallback={<div className="h-96 animate-pulse rounded-2xl bg-white/[0.04]" aria-busy="true" />}>
+        <Suspense fallback={<div className="h-96 animate-pulse rounded-3xl bg-cosmos/60" aria-busy="true" />}>
           <ManageContent params={params} />
         </Suspense>
       </PageTransition>

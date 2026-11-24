@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Library, LogOut, Settings } from "lucide-react";
+import { Library, LogOut, Plus, Settings, UserRound } from "lucide-react";
 import { signOut } from "@/lib/auth/actions";
 import type { SessionUser } from "@/lib/auth/dal";
 import { NAV_BACK, NAV_FORWARD } from "@/components/layout/page-transition";
@@ -34,7 +34,7 @@ export function Avatar({ user, size = 36 }: { user: Pick<SessionUser, "fullName"
   }
   return (
     <span
-      className="flex items-center justify-center rounded-full bg-leather font-medium text-ivory"
+      className="flex items-center justify-center rounded-full bg-gradient-to-br from-turquoise to-dusk font-semibold text-ivory shadow-[inset_0_0_0_1px_rgb(240_235_221/0.15)]"
       style={{ width: size, height: size, fontSize: size * 0.38 }}
       aria-hidden
     >
@@ -70,7 +70,7 @@ export function UserMenu({ user }: { user: SessionUser }) {
   }, [open]);
 
   const itemClass =
-    "flex w-full cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-ink hover:bg-parchment/70 focus:bg-parchment/70 focus:outline-none";
+    "flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-silver transition-colors hover:bg-aurora/[0.08] hover:text-ivory focus:bg-aurora/[0.08] focus:text-ivory focus:outline-none";
 
   return (
     <div ref={rootRef} className="relative">
@@ -81,7 +81,7 @@ export function UserMenu({ user }: { user: SessionUser }) {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={menuId}
-        className="flex cursor-pointer items-center rounded-full ring-2 ring-transparent transition hover:ring-gold/40 focus-visible:ring-gold"
+        className="flex cursor-pointer items-center rounded-full ring-2 ring-transparent transition hover:ring-aurora/40 focus-visible:ring-aurora"
       >
         <span className="sr-only">Account menu</span>
         <Avatar user={user} />
@@ -97,25 +97,34 @@ export function UserMenu({ user }: { user: SessionUser }) {
           id={menuId}
           role="menu"
           aria-label="Account"
-          className="absolute right-0 z-50 mt-2 w-64 origin-top-right rounded-xl border border-parchment bg-ivory p-1.5 shadow-[var(--shadow-paper)]"
+          className="night-panel absolute right-0 z-50 mt-2 w-64 origin-top-right rounded-2xl p-1.5"
         >
-          <div className="px-3 pt-2 pb-3">
-            <p className="truncate font-serif text-lg text-walnut">{user.fullName || "Your account"}</p>
-            <p className="truncate text-xs text-muted">{user.email}</p>
+          <div className="flex items-center gap-3 px-3 pt-2.5 pb-3">
+            <Avatar user={user} size={40} />
+            <div className="min-w-0">
+              <p className="truncate font-display text-[16px] leading-tight text-ivory">{user.fullName || "Your account"}</p>
+              <p className="truncate text-xs text-silver/70">{user.email}</p>
+            </div>
           </div>
-          <div className="h-px bg-parchment" />
+          <div className="h-px bg-ivory/8" />
           <div className="py-1">
             <Link href="/library" transitionTypes={NAV_BACK} role="menuitem" className={itemClass} onClick={() => setOpen(false)}>
-              <Library className="size-4 text-muted" aria-hidden /> Bookshelf
+              <Library className="size-4 text-aurora/70" aria-hidden /> My library
+            </Link>
+            <Link href="/albums/new" transitionTypes={NAV_FORWARD} role="menuitem" className={itemClass} onClick={() => setOpen(false)}>
+              <Plus className="size-4 text-aurora/70" aria-hidden /> Create album
+            </Link>
+            <Link href="/settings#profile" transitionTypes={NAV_FORWARD} role="menuitem" className={itemClass} onClick={() => setOpen(false)}>
+              <UserRound className="size-4 text-aurora/70" aria-hidden /> Profile
             </Link>
             <Link href="/settings" transitionTypes={NAV_FORWARD} role="menuitem" className={itemClass} onClick={() => setOpen(false)}>
-              <Settings className="size-4 text-muted" aria-hidden /> Account settings
+              <Settings className="size-4 text-aurora/70" aria-hidden /> Settings
             </Link>
           </div>
-          <div className="h-px bg-parchment" />
+          <div className="h-px bg-ivory/8" />
           <form action={signOut} className="pt-1">
             <button type="submit" role="menuitem" className={itemClass}>
-              <LogOut className="size-4 text-muted" aria-hidden /> Sign out
+              <LogOut className="size-4 text-aurora/70" aria-hidden /> Sign out
             </button>
           </form>
         </motion.div>

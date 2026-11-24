@@ -1,70 +1,194 @@
 @import "tailwindcss";
 
 /*
- * Digital Memory Album — design tokens
- * Warm cream, antique ivory, dark walnut, leather brown, muted gold, soft charcoal.
+ * Memory Shelf — Celestial Library design tokens
+ *
+ * Layered night-sky surfaces, muted teal architecture, moonlight gold and soft cyan
+ * light, warm ivory text. Album interiors use warm paper with navy ink.
+ * Base tokens (below) are usable from CSS Modules; the @theme block exposes them to
+ * Tailwind as background, text and border utilities.
  */
 :root {
-  --cream: #f4ede0;
-  --ivory: #fbf7ee;
-  --parchment: #ebe1cf;
-  --walnut: #3b2a1e;
-  --walnut-deep: #22170f;
-  --walnut-light: #5a4030;
-  --leather: #7a4b2a;
-  --leather-light: #9a6640;
-  --gold: #b8955a;
-  --gold-soft: #d4bb8a;
-  --charcoal: #2e2b28;
-  --ink: #3a332c;
-  --muted: #7c7064;
-  --danger: #9b3b2e;
-  --success: #4f6b45;
-  --ring: #b8955a;
+  /* Night sky — page backgrounds, darkest to lightest */
+  --abyss: #080f23;
+  --cosmos: #101b35;
+  --deep: #152747;
+
+  /* Architecture */
+  --lagoon: #1b555b;
+  --turquoise: #176d78;
+  --dusk: #393b71;
+
+  /* Light accents (use sparingly) */
+  --moon: #e8d78b;
+  --lavender: #a89acb;
+  --aurora: #83d9d4;
+  --blush: #d89ccb;
+
+  /* Text on the night sky */
+  --ivory: #f0ebdd;
+  --silver: #b9c4d4;
+
+  /* Album interiors — warm paper, navy ink, antique gilt */
+  --paper: #f3ecdb;
+  --paper-shade: #e4d9bf;
+  --ink: #26304a;
+  --ink-soft: #5d6479;
+  --gilt: #a8893f;
+
+  /* Status (tuned to read on dark surfaces) */
+  --danger: #ec9a9a;
+  --danger-strong: #a4404f;
+  --success: #8fd3b6;
+  --ring: #83d9d4;
+
+  /* Typography */
+  --font-heading: var(--font-newsreader), ui-serif, Georgia, serif;
+  /* Astrological display faces: engraved star-chart capitals. */
+  --font-title: var(--font-cinzel), var(--font-newsreader), Georgia, serif;
+  --font-ornament: var(--font-cinzel-deco), var(--font-cinzel), Georgia, serif;
+  --font-body: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+
+  /* Motion */
+  --ease-float: cubic-bezier(0.37, 0, 0.63, 1);
+  --ease-out-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 @theme inline {
-  --color-cream: var(--cream);
+  --color-abyss: var(--abyss);
+  --color-cosmos: var(--cosmos);
+  --color-deep: var(--deep);
+  --color-lagoon: var(--lagoon);
+  --color-turquoise: var(--turquoise);
+  --color-dusk: var(--dusk);
+  --color-moon: var(--moon);
+  --color-lavender: var(--lavender);
+  --color-aurora: var(--aurora);
+  --color-blush: var(--blush);
   --color-ivory: var(--ivory);
-  --color-parchment: var(--parchment);
-  --color-walnut: var(--walnut);
-  --color-walnut-deep: var(--walnut-deep);
-  --color-walnut-light: var(--walnut-light);
-  --color-leather: var(--leather);
-  --color-leather-light: var(--leather-light);
-  --color-gold: var(--gold);
-  --color-gold-soft: var(--gold-soft);
-  --color-charcoal: var(--charcoal);
+  --color-silver: var(--silver);
+  --color-paper: var(--paper);
+  --color-paper-shade: var(--paper-shade);
   --color-ink: var(--ink);
-  --color-muted: var(--muted);
+  --color-ink-soft: var(--ink-soft);
+  --color-gilt: var(--gilt);
   --color-danger: var(--danger);
+  --color-danger-strong: var(--danger-strong);
   --color-success: var(--success);
 
-  --font-serif: var(--font-cormorant), ui-serif, Georgia, serif;
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), ui-serif, Georgia, serif;
+  --font-display: var(--font-cinzel), var(--font-newsreader), Georgia, serif;
+  --font-ornate: var(--font-cinzel-deco), var(--font-cinzel), Georgia, serif;
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
 
-  --shadow-book: 0 18px 30px -12px rgb(20 12 6 / 0.55), 0 4px 8px -2px rgb(20 12 6 / 0.35);
-  --shadow-paper: 0 1px 2px rgb(58 51 44 / 0.08), 0 8px 24px -8px rgb(58 51 44 / 0.18);
+  --shadow-book: 0 18px 30px -12px rgb(2 6 18 / 0.7), 0 4px 8px -2px rgb(2 6 18 / 0.45);
+  --shadow-panel: 0 1px 0 rgb(240 235 221 / 0.04) inset, 0 24px 60px -24px rgb(2 6 18 / 0.85);
+  --shadow-paper: 0 1px 2px rgb(38 48 74 / 0.1), 0 8px 24px -8px rgb(38 48 74 / 0.22);
 }
 
 html {
-  color-scheme: light;
+  color-scheme: dark;
+  background: var(--abyss);
 }
 
 body {
-  background: var(--cream);
-  color: var(--ink);
-  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  background: var(--abyss);
+  color: var(--ivory);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+.font-serif {
+  font-optical-sizing: auto;
+}
+
+.font-display,
+.font-ornate {
+  letter-spacing: 0.02em;
 }
 
 ::selection {
-  background: rgb(184 149 90 / 0.35);
+  background: rgb(131 217 212 / 0.3);
+  color: var(--ivory);
 }
 
 :focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
+}
+
+/* A translucent night panel. No backdrop blur: the sky behind it animates, and a
+   blur would have to be recomputed every frame. */
+@utility night-panel {
+  background:
+    linear-gradient(180deg, rgb(240 235 221 / 0.035), transparent 40%),
+    rgb(16 27 53 / 0.86);
+  border: 1px solid rgb(240 235 221 / 0.09);
+  box-shadow: var(--shadow-panel);
+}
+
+/* Small uppercase label used for section eyebrows, led by a little star. */
+@utility eyebrow {
+  font-family: var(--font-title);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  &::before {
+    content: "";
+    display: inline-block;
+    width: 0.95em;
+    height: 0.95em;
+    margin-right: 0.6em;
+    vertical-align: -0.1em;
+    background-color: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 1Q13.7 10.3 23 12Q13.7 13.7 12 23Q10.3 13.7 1 12Q10.3 10.3 12 1Z'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 1Q13.7 10.3 23 12Q13.7 13.7 12 23Q10.3 13.7 1 12Q10.3 10.3 12 1Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+}
+
+/* Gilded display lettering for page titles. */
+@utility title-gilt {
+  background: linear-gradient(180deg, #fbf4dc 0%, #efe2a8 45%, #d2bb6e 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 14px rgb(232 215 139 / 0.22));
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes float-soft {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: 0 -6px;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

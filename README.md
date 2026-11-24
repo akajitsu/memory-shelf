@@ -43,9 +43,18 @@ In Supabase → **SQL Editor**, run these files in order:
 
 1. `supabase/migrations/20261122000001_initial_schema.sql`: tables, triggers, RLS, `album-photos` bucket + policies
 2. `supabase/migrations/20261122000002_explicit_grants.sql`: column-level privileges
+3. `supabase/migrations/20261123000001_book_designs.sql`: book binding design and pattern columns
 
 Then run `supabase/tests/rls_test.sql`. It deliberately ends with an error whose message should read
 `RLS TEST RESULT: 23 passed, 0 failed.` (raising the error rolls back the test data).
+
+### Background music
+
+The library plays a quiet, looping track once the reader first clicks or presses a key (the header's
+sound button has an on/off switch and a volume slider). The track is `public/audio/starlight.mp3`
+("Starlight | Hopeful", Noonsol Music Studio); make sure you have the creator's permission before deploying
+it publicly. The file is detected at build time, so restart `npm run dev` or rebuild after replacing or
+removing it. Without the file the music switch shows "Not available yet".
 
 ### Authentication settings (Supabase → Authentication)
 

@@ -1,19 +1,36 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Inter } from "next/font/google";
+import { Cinzel, Cinzel_Decorative, Manrope, Newsreader } from "next/font/google";
 import { Toaster } from "sonner";
 import { ViewTransitionGuard } from "@/components/layout/view-transition-guard";
 import "./globals.css";
 
-const cormorant = Cormorant_Garamond({
-  variable: "--font-cormorant",
+/** Headings, titles and editorial text. Variable font with optical sizing. */
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
   style: ["normal", "italic"],
+  axes: ["opsz"],
   display: "swap",
 });
 
-const inter = Inter({
-  variable: "--font-inter",
+/** Engraved capitals of old star charts: headings, book titles, spines. */
+const cinzel = Cinzel({
+  variable: "--font-cinzel",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+/** Cinzel with ornamental swash capitals: the wordmark and page titles. */
+const cinzelDecorative = Cinzel_Decorative({
+  variable: "--font-cinzel-deco",
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  display: "swap",
+});
+
+/** Interface text: navigation, buttons, forms, captions. */
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
   display: "swap",
 });
@@ -24,16 +41,17 @@ export const metadata: Metadata = {
     template: "%s · Memory Shelf",
   },
   description:
-    "A private digital library of photo albums. Create memory books, fill them with photographs, and revisit them on your own bookshelf.",
+    "A private celestial library of photo albums. Bind your memories into books and revisit them among the stars.",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#22170f",
+  themeColor: "#080f23",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${cormorant.variable} ${inter.variable} h-full`}>
+    <html lang="en" className={`${newsreader.variable} ${manrope.variable} ${cinzel.variable} ${cinzelDecorative.variable} h-full`}>
       <body className="flex min-h-full flex-col">
         <ViewTransitionGuard />
         {children}
@@ -41,8 +59,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           position="top-center"
           toastOptions={{
             classNames: {
-              toast: "!bg-ivory !text-ink !border-parchment !font-sans",
-              description: "!text-muted",
+              toast: "!bg-cosmos !text-ivory !border-ivory/12 !font-sans !shadow-[0_18px_40px_-12px_rgb(0_0_0/0.7)]",
+              description: "!text-silver",
+              success: "[&_[data-icon]]:!text-aurora",
+              error: "[&_[data-icon]]:!text-danger",
             },
           }}
         />

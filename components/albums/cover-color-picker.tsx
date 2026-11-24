@@ -1,17 +1,19 @@
 "use client";
 
 import { Check, Palette } from "lucide-react";
-import { COVER_COLORS } from "@/lib/constants";
+import { BOOK_COLORS, foilFor } from "@/lib/book-design";
 import { cn } from "@/lib/utils";
 
+/** Leather swatches plus a custom color. */
 export function CoverColorPicker({ value, onChange }: { value: string; onChange: (hex: string) => void }) {
-  const isCustom = !COVER_COLORS.some((c) => c.value.toLowerCase() === value.toLowerCase());
+  const isCustom = !BOOK_COLORS.some((c) => c.value.toLowerCase() === value.toLowerCase());
+  const ring = "ring-2 ring-moon ring-offset-2 ring-offset-cosmos";
 
   return (
-    <fieldset className="space-y-2">
-      <legend className="text-sm font-medium text-ink">Leather color</legend>
+    <fieldset className="space-y-2.5">
+      <legend className="text-[13px] font-semibold tracking-wide text-silver">Leather</legend>
       <div className="flex flex-wrap gap-2.5" role="radiogroup" aria-label="Leather color">
-        {COVER_COLORS.map((c) => {
+        {BOOK_COLORS.map((c) => {
           const selected = c.value.toLowerCase() === value.toLowerCase();
           return (
             <button
@@ -23,24 +25,24 @@ export function CoverColorPicker({ value, onChange }: { value: string; onChange:
               title={c.name}
               onClick={() => onChange(c.value)}
               className={cn(
-                "relative flex size-10 cursor-pointer items-center justify-center rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.25),0_2px_4px_rgb(0_0_0/0.2)] transition-transform hover:scale-105",
-                selected && "ring-2 ring-gold ring-offset-2 ring-offset-ivory",
+                "relative flex size-10 cursor-pointer items-center justify-center rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.3),inset_0_2px_3px_rgb(255_255_255/0.12),0_2px_6px_rgb(0_0_0/0.35)] transition-transform hover:scale-105",
+                selected && ring,
               )}
               style={{ backgroundColor: c.value }}
             >
-              {selected && <Check className="size-4 text-gold-soft" aria-hidden />}
+              {selected && <Check className="size-4" style={{ color: foilFor(c.value).text }} aria-hidden />}
             </button>
           );
         })}
         <label
           className={cn(
-            "relative flex size-10 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-dashed border-muted/50 bg-ivory text-muted transition-transform hover:scale-105",
-            isCustom && "border-solid ring-2 ring-gold ring-offset-2 ring-offset-ivory",
+            "relative flex size-10 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-dashed border-silver/40 bg-abyss/50 text-silver transition-transform hover:scale-105",
+            isCustom && cn("border-solid", ring),
           )}
           title="Custom color"
           style={isCustom ? { backgroundColor: value } : undefined}
         >
-          <Palette className={cn("size-4", isCustom && "text-gold-soft")} aria-hidden />
+          <Palette className="size-4" style={isCustom ? { color: foilFor(value).text } : undefined} aria-hidden />
           <span className="sr-only">Custom color</span>
           <input
             type="color"

@@ -66,10 +66,10 @@ function CaptionEditor({ photo }: { photo: AlbumPhotoView }) {
             (e.target as HTMLTextAreaElement).blur();
           }
         }}
-        className={cn(inputClass, "h-auto resize-none py-2 pr-8 font-serif text-[15px] leading-snug italic")}
+        className={cn(inputClass, "h-auto resize-none rounded-lg py-2 pr-8 font-serif text-[15px] leading-snug italic")}
       />
       <span className="pointer-events-none absolute top-2.5 right-2.5" aria-live="polite">
-        {state === "saving" && <LoaderCircle className="size-4 animate-spin text-muted" aria-label="Saving caption" />}
+        {state === "saving" && <LoaderCircle className="size-4 animate-spin text-silver" aria-label="Saving caption" />}
         {state === "saved" && <Check className="size-4 text-success" aria-label="Caption saved" />}
       </span>
     </div>
@@ -95,16 +95,16 @@ function SortablePhoto({
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        "flex flex-col gap-2 rounded-xl border border-parchment bg-ivory p-2.5 shadow-[var(--shadow-paper)]",
-        isDragging && "z-20 scale-[1.03] shadow-2xl ring-2 ring-gold",
+        "night-panel flex flex-col gap-2 rounded-2xl p-2.5",
+        isDragging && "z-20 scale-[1.03] shadow-2xl ring-2 ring-aurora/70",
       )}
     >
-      <div className="relative aspect-[4/3] overflow-hidden rounded-md bg-parchment">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-deep">
         {thumb && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={thumb} alt={photo.caption ?? ""} loading="lazy" className="size-full object-cover" draggable={false} />
         )}
-        <span className="absolute top-1.5 left-1.5 rounded-md bg-walnut-deep/75 px-1.5 py-0.5 text-[11px] text-ivory tabular-nums">
+        <span className="absolute top-1.5 left-1.5 rounded-full bg-abyss/80 px-2 py-0.5 text-[11px] font-semibold text-moon tabular-nums">
           {index + 1}
         </span>
         <button
@@ -112,7 +112,7 @@ function SortablePhoto({
           type="button"
           {...attributes}
           {...listeners}
-          className="absolute top-1.5 right-1.5 flex size-9 cursor-grab touch-none items-center justify-center rounded-md bg-ivory/90 text-ink shadow active:cursor-grabbing"
+          className="absolute top-1.5 right-1.5 flex size-9 cursor-grab touch-none items-center justify-center rounded-full bg-abyss/80 text-ivory shadow hover:text-aurora active:cursor-grabbing"
           aria-label={`Reorder photo ${index + 1}. Press space to pick up, arrow keys to move.`}
         >
           <GripVertical className="size-4" />
@@ -120,13 +120,13 @@ function SortablePhoto({
       </div>
       <CaptionEditor photo={photo} />
       <div className="flex items-center justify-between gap-2">
-        <p className="truncate text-[11px] text-muted" title={photo.name ?? undefined}>
+        <p className="truncate text-[11px] text-silver/65" title={photo.name ?? undefined}>
           {photo.name}
         </p>
         <button
           type="button"
           onClick={() => onDelete(photo)}
-          className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-md px-2 py-1 text-xs text-muted hover:bg-danger/10 hover:text-danger"
+          className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-silver/70 hover:bg-danger/12 hover:text-danger"
         >
           <Trash2 className="size-3.5" aria-hidden /> Delete
         </button>
@@ -193,10 +193,10 @@ export function PhotoManager({ albumId, photos: initial }: { albumId: string; ph
 
       <section aria-labelledby="arrange-heading">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 id="arrange-heading" className="font-serif text-2xl text-ivory">
+          <h2 id="arrange-heading" className="font-display text-[21px] text-ivory">
             Arrange &amp; caption
           </h2>
-          <p className="text-sm text-gold-soft/75" aria-live="polite">
+          <p className="text-sm text-silver/80" aria-live="polite">
             {orderState === "saving" && "Saving order…"}
             {orderState === "saved" && "Order saved"}
             {orderState === "error" && "Couldn’t save the order"}
@@ -206,7 +206,7 @@ export function PhotoManager({ albumId, photos: initial }: { albumId: string; ph
         </div>
 
         {photos.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-gold/20 bg-white/[0.025] px-6 py-12 text-center text-sm text-ivory/60">
+          <div className="rounded-3xl border border-dashed border-ivory/15 bg-cosmos/50 px-6 py-12 text-center text-sm text-silver/70">
             No photographs in this album yet. Add some above.
           </div>
         ) : (
@@ -233,7 +233,7 @@ export function PhotoManager({ albumId, photos: initial }: { albumId: string; ph
         <p>
           {toDelete?.caption ? (
             <>
-              “<span className="text-ink">{toDelete.caption}</span>” will be permanently removed from this album.
+              “<span className="text-ivory">{toDelete.caption}</span>” will be permanently removed from this album.
             </>
           ) : (
             "This photograph will be permanently removed from the album."

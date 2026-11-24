@@ -3,7 +3,10 @@
 import Link from "next/link";
 import type { CSSProperties, MouseEvent } from "react";
 import type { ShelfAlbum } from "@/types/app";
-import { bookDimensions, foilFor } from "@/lib/bookshelf";
+import { bookDimensions, driftFor, floatFor } from "@/lib/bookshelf";
+import { BookCover, bookVars, PatternLayer } from "@/components/books/book-cover";
+import { SpineGlyph } from "@/components/books/ornaments";
+import { Glyph, signForTitle, zodiacGlyph } from "@/components/astro/astro";
 import { cn } from "@/lib/utils";
 import styles from "./bookshelf.module.css";
 
@@ -23,16 +26,15 @@ export function Book({
   onIntent?: (album: ShelfAlbum) => void;
 }) {
   const { thickness, height, depth } = bookDimensions(album.id, album.photoCount);
-  const foil = foilFor(album.coverColor);
+  const float = floatFor(album.id);
+  const drift = driftFor(album.id);
   const label = `${album.title}, ${album.photoCount} ${album.photoCount === 1 ? "photo" : "photos"}`;
 
   const vars = {
     "--t": thickness,
     "--h": height,
     "--d": depth,
-    "--leather": album.coverColor,
-    "--foil": foil.text,
-    "--band": foil.band,
+    ...bookVars(album.coverColor),
   } as CSSProperties;
 
   function onClick(e: MouseEvent<HTMLAnchorElement>) {
@@ -45,48 +47,64 @@ export function Book({
     <div
       className={cn(styles.slot, opening && styles.opening)}
       role="listitem"
-      style={{ "--i": index } as CSSProperties}
+      style={
+        {
+          "--i": index,
+          "--period": `${float.period.toFixed(2)}s`,
+          "--delay": `${float.delay.toFixed(2)}s`,
+          "--lift": float.lift.toFixed(1),
+          // Used only by the Floating library style.
+          "--tilt": `${drift.tilt.toFixed(1)}deg`,
+          "--turn": `${drift.turn.toFixed(1)}deg`,
+          "--offset": drift.offset,
+          "--sway": `${drift.sway.toFixed(1)}deg`,
+        } as CSSProperties
+      }
     >
-      <Link
-        href={`/albums/${album.id}`}
-        className={styles.link}
-        aria-label={`Open album: ${label}`}
-        title={album.title}
-        onClick={onClick}
-        onPointerEnter={() => onIntent?.(album)}
-        onFocus={() => onIntent?.(album)}
-      >
-        <div className={styles.book} style={vars}>
-          {/* Spine — faces the viewer */}
-          <div className={`${styles.face} ${styles.spine}`}>
-            <span className={styles.band} style={{ top: "6%" }} />
-            <span className={styles.band} style={{ top: "9%" }} />
-            <span className={styles.title}>{album.title}</span>
-            <span className={styles.band} style={{ bottom: "12%" }} />
-            <span className={styles.count} aria-hidden>
-              {album.photoCount}
-            </span>
-            <span className={styles.band} style={{ bottom: "4%" }} />
-          </div>
+      <div className={styles.float}>
+        <span className={styles.halo} aria-hidden />
+        <Link
+          href={`/albums/${album.id}`}
+          className={styles.link}
+          aria-label={`Open album: ${label}`}
+          title={album.title}
+          onClick={onClick}
+          onPointerEnter={() => onIntent?.(album)}
+          onFocus={() => onIntent?.(album)}
+        >
+          <div className={styles.book} style={vars}>
+            {/* Spine — faces the viewer */}
+            <div className={`${styles.face} ${styles.spine}`}>
+              <PatternLayer pattern={album.coverPattern} className={styles.spinePattern} scale={0.6} />
+              <span className={styles.band} style={{ top: "5%" }} />
+              <span className={styles.band} style={{ top: "7.5%" }} />
+              <SpineGlyph design={album.coverDesign} className={styles.glyph} />
+              <span className={styles.title}>
+                <span>{album.title}</span>
+              </span>
+              <Glyph d={zodiacGlyph(signForTitle(album.title))} className={styles.signGlyph} width={1.8} />
+              <span className={styles.band} style={{ bottom: "13%" }} />
+              <span className={styles.count} aria-hidden>
+                {album.photoCount}
+              </span>
+              <span className={styles.band} style={{ bottom: "4.5%" }} />
+              <span className={styles.band} style={{ bottom: "2%" }} />
+            </div>
 
-          {/* Front cover — revealed when the book is pulled out */}
-          <div className={`${styles.face} ${styles.cover}`} aria-hidden>
-            {album.coverUrl ? (
-              <div className={styles.coverFrame}>
-                {/* Signed, expiring URL from private storage — not routed through next/image. */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={album.coverUrl} alt="" loading="lazy" decoding="async" draggable={false} />
-              </div>
-            ) : (
-              <div className={styles.coverFrame} style={{ aspectRatio: "auto", flex: "0 0 30%" }} />
-            )}
-            <span className={styles.coverTitle}>{album.title}</span>
-          </div>
+            {/* Front cover — revealed when the book is pulled out. Designed, never a photo. */}
+            <div className={`${styles.face} ${styles.cover}`} aria-hidden>
+              <BookCover
+                fill
+                patternScale={0.6}
+                look={{ title: album.title, color: album.coverColor, design: album.coverDesign, pattern: album.coverPattern }}
+              />
+            </div>
 
-          {/* Page block */}
-          <div className={`${styles.face} ${styles.top}`} aria-hidden />
-        </div>
-      </Link>
+            {/* Page block */}
+            <div className={`${styles.face} ${styles.top}`} aria-hidden />
+          </div>
+        </Link>
+      </div>
       <span className={styles.shadow} aria-hidden />
     </div>
   );

@@ -4,6 +4,8 @@
  * (or regenerate with `npx supabase gen types typescript --project-id <ref>`).
  */
 
+import type { BookDesign, BookPattern } from "@/lib/book-design";
+
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
@@ -37,23 +39,29 @@ export type Database = {
           user_id: string;
           title: string;
           description: string | null;
+          /** Legacy cover photograph. Kept for existing data; no longer displayed or set. */
           cover_image_path: string | null;
           cover_color: string;
+          cover_design: BookDesign;
+          cover_pattern: BookPattern;
           created_at: string;
           updated_at: string;
         };
         // Column-level INSERT grant: id and user_id come from database defaults.
-        // cover_image_path is set by update after the cover is uploaded into the album's folder.
         Insert: {
           title: string;
           description?: string | null;
           cover_color?: string;
+          cover_design?: BookDesign;
+          cover_pattern?: BookPattern;
         };
         Update: {
           title?: string;
           description?: string | null;
           cover_image_path?: string | null;
           cover_color?: string;
+          cover_design?: BookDesign;
+          cover_pattern?: BookPattern;
         };
         Relationships: [];
       };

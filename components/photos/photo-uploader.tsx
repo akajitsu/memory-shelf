@@ -3,14 +3,13 @@
 import { useEffect, useRef, useState, type DragEvent } from "react";
 import { CheckCircle2, CircleAlert, ImagePlus, UploadCloud, X } from "lucide-react";
 import { toast } from "sonner";
-import { ALLOWED_IMAGE_TYPES, MAX_FILES_PER_UPLOAD, UPLOAD_CONCURRENCY } from "@/lib/constants";
-import { checkImageFile, ImagePrepError, prepareImage, type PreparedImage } from "@/lib/images/prepare";
-import { uploadWithProgress } from "@/lib/images/upload";
-import { finalizePhotoUploads, requestPhotoUploads } from "@/lib/photos/actions";
+import { ALLOWED_IMAGE_TYPES, MAX_FILES_PER_UPLOAD } from "@/lib/constants";
+import { checkImageFile, ImagePrepError } from "@/lib/images/prepare";
+import { uploadPhotoFiles, type UploadStage } from "@/lib/photos/upload-client";
 import { cn, formatBytes } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-type Status = "ready" | "invalid" | "preparing" | "uploading" | "saving" | "done" | "error";
+type Status = "ready" | "invalid" | UploadStage;
 type Item = {
   key: string;
   file: File;
@@ -21,16 +20,6 @@ type Item = {
 };
 
 let keySeq = 0;
-
-/** Run async tasks with a concurrency limit. */
-async function pool<T>(items: T[], limit: number, worker: (item: T) => Promise<void>) {
-  const queue = [...items];
-  await Promise.all(
-    Array.from({ length: Math.min(limit, queue.length) }, async () => {
-      while (queue.length) await worker(queue.shift()!);
-    }),
-  );
-}
 
 export function PhotoUploader({ albumId, onUploaded }: { albumId: string; onUploaded: () => void }) {
   const [items, setItems] = useState<Item[]>([]);
@@ -51,9 +40,6 @@ export function PhotoUploader({ albumId, onUploaded }: { albumId: string; onUplo
       return list.filter((i) => i.status !== "done" && i.status !== "invalid");
     });
   }
-
-  const patch = (key: string, p: Partial<Item>) =>
-    setItems((list) => list.map((it) => (it.key === key ? { ...it, ...p } : it)));
 
   async function addFiles(fileList: FileList | File[]) {
     const files = Array.from(fileList);
@@ -88,85 +74,17 @@ export function PhotoUploader({ albumId, onUploaded }: { albumId: string; onUplo
     const queue = itemsRef.current.filter((i) => i.status === "ready" || i.status === "error");
     if (!queue.length || busy) return;
     setBusy(true);
-
-    // 1. Resize/re-encode in the browser.
-    const prepared = new Map<string, PreparedImage>();
-    for (const it of queue) {
-      patch(it.key, { status: "preparing", error: undefined, progress: 0 });
-      try {
-        prepared.set(it.key, await prepareImage(it.file, { thumbnail: true }));
-      } catch (e) {
-        patch(it.key, { status: "error", error: e instanceof Error ? e.message : "Couldn’t read this image." });
-      }
-    }
-    const ready = queue.filter((it) => prepared.has(it.key));
-    if (!ready.length) {
-      setBusy(false);
-      return;
-    }
-
-    // 2. Ask the server for upload URLs (it chooses the storage paths).
-    const req = await requestPhotoUploads({
-      albumId,
-      files: ready.map((it) => {
-        const p = prepared.get(it.key)!;
-        return { contentType: p.type, size: p.blob.size, thumbSize: p.thumb?.size };
-      }),
-    });
-    if (!req.ok) {
-      ready.forEach((it) => patch(it.key, { status: "error", error: req.error }));
-      toast.error(req.error);
-      setBusy(false);
-      return;
-    }
-
-    // 3. Upload directly to private storage, a few at a time, with progress.
-    const uploaded: { key: string; path: string; name: string; hasThumb: boolean }[] = [];
-    await pool(
-      ready.map((it, i) => ({ it, target: req.data.targets[i] })),
-      UPLOAD_CONCURRENCY,
-      async ({ it, target }) => {
-        const p = prepared.get(it.key)!;
-        patch(it.key, { status: "uploading", progress: 0 });
-        try {
-          // Small display thumbnail first (best effort), then the full image with progress.
-          let hasThumb = false;
-          if (p.thumb && target.thumb) {
-            hasThumb = await uploadWithProgress(target.thumb.signedUrl, p.thumb, "image/jpeg").then(
-              () => true,
-              () => false,
-            );
-          }
-          await uploadWithProgress(target.signedUrl, p.blob, p.type, (progress) => patch(it.key, { progress }));
-          patch(it.key, { status: "saving", progress: 1 });
-          uploaded.push({ key: it.key, path: target.path, name: it.file.name, hasThumb });
-        } catch (e) {
-          patch(it.key, { status: "error", error: e instanceof Error ? e.message : "Upload failed." });
-        }
-      },
+    const result = await uploadPhotoFiles(albumId, queue, (key, u) =>
+      setItems((list) =>
+        list.map((it) =>
+          it.key === key ? { ...it, status: u.status, progress: u.progress ?? it.progress, error: u.error } : it,
+        ),
+      ),
     );
-
-    // 4. Server verifies each file and records them in the chosen order.
-    if (uploaded.length) {
-      const order = new Map(ready.map((it, i) => [it.key, i]));
-      uploaded.sort((a, b) => order.get(a.key)! - order.get(b.key)!);
-      const fin = await finalizePhotoUploads({
-        albumId,
-        items: uploaded.map(({ path, name, hasThumb }) => ({ path, name, hasThumb })),
-      });
-      if (!fin.ok) {
-        uploaded.forEach((u) => patch(u.key, { status: "error", error: fin.error }));
-        toast.error(fin.error);
-      } else {
-        const failed = new Map(fin.data.failed.map((f) => [f.path, f.reason]));
-        uploaded.forEach((u) =>
-          failed.has(u.path) ? patch(u.key, { status: "error", error: failed.get(u.path) }) : patch(u.key, { status: "done" }),
-        );
-        if (fin.data.added > 0) {
-          toast.success(`${fin.data.added} ${fin.data.added === 1 ? "photo" : "photos"} added to the album.`);
-          onUploaded();
-        }
-      }
+    if (result.error) toast.error(result.error);
+    if (result.added > 0) {
+      toast.success(`${result.added} ${result.added === 1 ? "photo" : "photos"} added to the album.`);
+      onUploaded();
     }
     setBusy(false);
   }
@@ -182,12 +100,12 @@ export function PhotoUploader({ albumId, onUploaded }: { albumId: string; onUplo
   const overall = active.length ? active.reduce((s, i) => s + i.progress, 0) / active.length : 0;
 
   return (
-    <section aria-labelledby="upload-heading" className="rounded-2xl border border-parchment bg-ivory p-4 text-ink shadow-[var(--shadow-paper)] sm:p-6">
-      <div className="mb-4 flex items-baseline justify-between gap-3">
-        <h2 id="upload-heading" className="font-serif text-2xl text-walnut">
+    <section aria-labelledby="upload-heading" className="night-panel rounded-3xl p-4 text-ivory sm:p-6">
+      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <h2 id="upload-heading" className="font-display text-[21px] text-ivory">
           Add photographs
         </h2>
-        <span className="text-xs text-muted">Up to {MAX_FILES_PER_UPLOAD} at a time · JPEG, PNG, WebP, GIF</span>
+        <span className="text-xs text-silver/70">Up to {MAX_FILES_PER_UPLOAD} at a time · JPEG, PNG, WebP, GIF</span>
       </div>
 
       <div
@@ -198,12 +116,12 @@ export function PhotoUploader({ albumId, onUploaded }: { albumId: string; onUplo
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
         className={cn(
-          "flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-8 text-center transition-colors",
-          dragging ? "border-gold bg-gold/10" : "border-parchment bg-cream/40",
+          "flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed px-4 py-8 text-center transition-colors",
+          dragging ? "border-aurora bg-aurora/[0.08]" : "border-ivory/18 bg-abyss/40",
         )}
       >
-        <UploadCloud className="size-8 text-gold" aria-hidden />
-        <p className="text-sm text-ink">Drag photos here</p>
+        <UploadCloud className="size-8 text-aurora" aria-hidden />
+        <p className="text-sm text-silver">Drag photos here to place them on the pages</p>
         <Button type="button" variant="secondary" size="sm" disabled={busy} onClick={() => inputRef.current?.click()}>
           <ImagePlus className="size-4" aria-hidden /> Choose photos
         </Button>
@@ -227,7 +145,7 @@ export function PhotoUploader({ albumId, onUploaded }: { albumId: string; onUplo
           <ul className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-5 lg:grid-cols-6" aria-label="Photos to upload">
             {items.map((it) => (
               <li key={it.key} className="group relative">
-                <div className="relative aspect-square overflow-hidden rounded-lg bg-parchment">
+                <div className="relative aspect-square overflow-hidden rounded-xl bg-deep">
                   {it.status !== "invalid" ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={it.preview} alt="" className="size-full object-cover" />
@@ -235,29 +153,29 @@ export function PhotoUploader({ albumId, onUploaded }: { albumId: string; onUplo
                     <div className="flex size-full items-center justify-center p-2 text-center text-[11px] text-danger">Not an image</div>
                   )}
                   {(it.status === "uploading" || it.status === "preparing" || it.status === "saving") && (
-                    <div className="absolute inset-x-1.5 bottom-1.5 h-1.5 overflow-hidden rounded-full bg-black/30">
-                      <div className="h-full bg-gold transition-[width]" style={{ width: `${Math.max(4, it.progress * 100)}%` }} />
+                    <div className="absolute inset-x-1.5 bottom-1.5 h-1.5 overflow-hidden rounded-full bg-black/40">
+                      <div className="h-full bg-aurora transition-[width]" style={{ width: `${Math.max(4, it.progress * 100)}%` }} />
                     </div>
                   )}
                   {it.status === "done" && (
-                    <span className="absolute inset-0 flex items-center justify-center bg-black/35">
-                      <CheckCircle2 className="size-7 text-ivory" aria-label="Uploaded" />
+                    <span className="absolute inset-0 flex items-center justify-center bg-abyss/50">
+                      <CheckCircle2 className="size-7 text-aurora" aria-label="Uploaded" />
                     </span>
                   )}
                   {(it.status === "error" || it.status === "invalid") && (
-                    <span className="absolute top-1 left-1 rounded-full bg-ivory/90 p-0.5" title={it.error}>
+                    <span className="absolute top-1 left-1 rounded-full bg-abyss/85 p-0.5" title={it.error}>
                       <CircleAlert className="size-4 text-danger" aria-hidden />
                     </span>
                   )}
                 </div>
-                <p className="mt-1 truncate text-[11px] text-muted" title={it.file.name}>
+                <p className="mt-1 truncate text-[11px] text-silver/70" title={it.file.name}>
                   {it.error ? <span className="text-danger">{it.error}</span> : `${it.file.name} · ${formatBytes(it.file.size)}`}
                 </p>
                 {!busy && it.status !== "done" && (
                   <button
                     type="button"
                     onClick={() => removeItem(it.key)}
-                    className="absolute -top-2 -right-2 flex size-6 cursor-pointer items-center justify-center rounded-full bg-walnut text-ivory shadow hover:bg-danger"
+                    className="absolute -top-2 -right-2 flex size-6 cursor-pointer items-center justify-center rounded-full border border-ivory/15 bg-cosmos text-silver shadow hover:bg-danger-strong hover:text-ivory"
                     aria-label={`Remove ${it.file.name}`}
                   >
                     <X className="size-3.5" />
@@ -268,7 +186,7 @@ export function PhotoUploader({ albumId, onUploaded }: { albumId: string; onUplo
           </ul>
 
           <div className="mt-4 flex flex-col-reverse items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-muted" aria-live="polite">
+            <p className="text-sm text-silver" aria-live="polite">
               {busy
                 ? `Uploading… ${Math.round(overall * 100)}%`
                 : pending

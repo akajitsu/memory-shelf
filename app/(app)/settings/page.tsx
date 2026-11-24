@@ -14,12 +14,12 @@ export const metadata: Metadata = { title: "Account settings" };
 
 const dateFmt = new Intl.DateTimeFormat("en", { dateStyle: "long" });
 
-function Card({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
+function Card({ id, title, description, children }: { id?: string; title: string; description?: string; children: ReactNode }) {
   return (
-    <section className="rounded-2xl border border-parchment bg-ivory p-5 text-ink shadow-[var(--shadow-paper)] sm:p-7">
+    <section id={id} className="night-panel scroll-mt-24 rounded-3xl p-5 text-ivory sm:p-7">
       <div className="mb-5">
-        <h2 className="font-serif text-2xl text-walnut">{title}</h2>
-        {description && <p className="mt-1 text-sm text-muted">{description}</p>}
+        <h2 className="font-display text-[21px] text-ivory">{title}</h2>
+        {description && <p className="mt-1 text-sm text-silver/75">{description}</p>}
       </div>
       {children}
     </section>
@@ -33,18 +33,18 @@ async function SettingsContent() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4 rounded-2xl border border-gold/15 bg-white/[0.03] p-5">
+      <div className="flex items-center gap-4 rounded-3xl border border-aurora/15 bg-gradient-to-r from-lagoon/30 to-dusk/20 p-5">
         <Avatar user={account} size={56} />
         <div className="min-w-0">
-          <p className="truncate font-serif text-2xl text-ivory">{account.fullName || "Your account"}</p>
-          <p className="truncate text-sm text-gold-soft/70">
+          <p className="truncate font-display text-[22px] text-ivory">{account.fullName || "Your account"}</p>
+          <p className="truncate text-sm text-silver/80">
             {account.albumCount} {account.albumCount === 1 ? "album" : "albums"}
             {account.createdAt && ` · Member since ${dateFmt.format(new Date(account.createdAt))}`}
           </p>
         </div>
       </div>
 
-      <Card title="Profile" description="How your name appears in your library.">
+      <Card id="profile" title="Profile" description="How your name appears in your library.">
         <ProfileForm fullName={account.fullName ?? ""} email={account.email ?? ""} />
       </Card>
 
@@ -55,7 +55,7 @@ async function SettingsContent() {
         {hasPassword ? (
           <PasswordForm />
         ) : (
-          <p className="text-sm text-muted">
+          <p className="text-sm text-silver/80">
             You sign in with {hasGoogle ? "Google" : "an external provider"}, so there’s no password to change here.
             {hasGoogle && " Manage your password in your Google account."}
           </p>
@@ -64,8 +64,8 @@ async function SettingsContent() {
 
       <Card title="Session">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-muted">
-            Signed in as <span className="text-ink">{account.email}</span>
+          <p className="text-sm text-silver/80">
+            Signed in as <span className="text-ivory">{account.email}</span>
             {hasGoogle && " via Google"}.
           </p>
           <form action={signOut}>
@@ -86,14 +86,14 @@ export default function SettingsPage() {
         <Link
           href="/library"
           transitionTypes={NAV_BACK}
-          className="inline-flex items-center gap-1.5 text-sm text-gold-soft/80 transition-colors hover:text-ivory"
+          className="inline-flex items-center gap-1.5 rounded-full py-1 pr-2 text-sm font-medium text-silver transition-colors hover:text-aurora"
         >
-          <ArrowLeft className="size-4" aria-hidden /> Bookshelf
+          <ArrowLeft className="size-4" aria-hidden /> My library
         </Link>
-        <h1 className="mt-4 mb-8 font-serif text-4xl font-medium tracking-tight text-ivory sm:text-5xl">
+        <h1 className="mt-4 mb-8 title-gilt font-ornate text-[32px] leading-[1.12] font-normal text-ivory sm:text-[42px]">
           Account settings
         </h1>
-        <Suspense fallback={<div className="h-96 animate-pulse rounded-2xl bg-white/[0.04]" />}>
+        <Suspense fallback={<div className="h-96 animate-pulse rounded-3xl bg-cosmos/60" />}>
           <SettingsContent />
         </Suspense>
       </PageTransition>

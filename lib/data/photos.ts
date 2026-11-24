@@ -15,7 +15,7 @@ export const getAlbumPhotos = cache(async function getAlbumPhotos(albumId: strin
 
   const { data, error } = await supabase
     .from("album_photos")
-    .select("id, image_path, image_name, caption, display_order")
+    .select("id, image_path, image_name, caption, display_order, created_at")
     .eq("album_id", albumId)
     .eq("user_id", user.id)
     .order("display_order", { ascending: true })
@@ -39,5 +39,6 @@ export const getAlbumPhotos = cache(async function getAlbumPhotos(albumId: strin
     name: p.image_name,
     caption: p.caption,
     order: p.display_order,
+    addedAt: p.created_at,
   }));
 });

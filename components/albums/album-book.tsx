@@ -15,13 +15,16 @@ import { motion, useAnimate, useMotionValue, useReducedMotion, useTransform, typ
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { buildPages, type AlbumPage } from "@/lib/album-pages";
 import { setBookHandoff } from "@/lib/book-handoff";
+import type { BookDesign, BookPattern } from "@/lib/book-design";
+import { seeded } from "@/lib/random";
 import { playSound } from "@/lib/sound";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import type { AlbumPhotoView } from "@/types/app";
 import { BOOK_CLOSE } from "@/components/layout/page-transition";
 import { Lightbox } from "@/components/photos/lightbox";
 import { cn } from "@/lib/utils";
-import { AlbumCover } from "./album-cover";
+import { BookCover, bookVars, PatternLayer } from "@/components/books/book-cover";
+import { AlbumCompanion } from "@/components/cats/wizard-cats";
 import { AlbumPageView, type BookMeta } from "./album-page";
 import styles from "./album-book.module.css";
 
@@ -40,22 +43,16 @@ const noopSubscribe = () => () => {};
 const NOOP = () => {};
 type Turn = { dir: 1 | -1; from: number; to: number };
 
-/** Resolve when the given images (and URLs) are decoded, or after `timeoutMs`. */
-function whenImagesReady(root: HTMLElement | null, urls: (string | null | undefined)[], timeoutMs: number) {
+/** Resolve when the visible spread's photos are decoded, or after `timeoutMs`. */
+function whenImagesReady(root: HTMLElement | null, timeoutMs: number) {
   const decodes: Promise<unknown>[] = [];
   root?.querySelectorAll<HTMLImageElement>("img[data-book-img]").forEach((img) => {
     decodes.push(img.decode().catch(() => undefined));
   });
-  for (const url of urls) {
-    if (!url) continue;
-    const img = new Image();
-    img.src = url;
-    decodes.push(img.decode().catch(() => undefined));
-  }
   return Promise.race([Promise.all(decodes), new Promise((r) => setTimeout(r, timeoutMs))]);
 }
 
-/** Paper endpaper printed on the inside of the cover. */
+/** Endpaper on the inside of the cover: a night sky in the album's leather color. */
 function Endpaper({ color }: { color: string }) {
   return (
     <div
@@ -63,13 +60,30 @@ function Endpaper({ color }: { color: string }) {
       style={{
         backgroundColor: color,
         backgroundImage:
-          "radial-gradient(circle at 20% 30%, rgb(255 255 255 / 0.08) 0 2px, transparent 3px), radial-gradient(circle at 70% 60%, rgb(0 0 0 / 0.1) 0 2px, transparent 3px), linear-gradient(90deg, rgb(0 0 0 / 0.25), transparent 12%)",
-        backgroundSize: "22px 22px, 26px 26px, 100% 100%",
-        boxShadow: "inset 0 0 0 6px rgb(0 0 0 / 0.12)",
+          "url(/sky/constellations.svg), radial-gradient(circle at 20% 30%, rgb(232 215 139 / 0.55) 0 0.8px, transparent 1.4px), radial-gradient(circle at 65% 70%, rgb(240 235 221 / 0.4) 0 0.6px, transparent 1.2px), linear-gradient(rgb(8 15 35 / 0.6), rgb(8 15 35 / 0.6)), linear-gradient(90deg, rgb(0 0 0 / 0.3), transparent 12%)",
+        backgroundSize: "cover, 23px 23px, 31px 31px, 100% 100%, 100% 100%",
+        backgroundPosition: "center",
+        boxShadow: "inset 0 0 0 6px rgb(0 0 0 / 0.14), inset 0 0 0 7px rgb(232 215 139 / 0.25)",
       }}
     />
   );
 }
+
+/** Spark trajectories for the opening burst (seeded: identical on server and client). */
+const SPARKS = (() => {
+  const r = seeded(19);
+  return Array.from({ length: 14 }, () => {
+    const a = r() * Math.PI * 2;
+    const dist = 90 + r() * 170;
+    return {
+      "--dx": `${(Math.cos(a) * dist).toFixed(0)}px`,
+      "--dy": `${(Math.sin(a) * dist * 0.75 - 40).toFixed(0)}px`,
+      "--s": `${(5 + r() * 7).toFixed(1)}px`,
+      "--dur": `${(1 + r() * 0.8).toFixed(2)}s`,
+      "--delay": `${(0.35 + r() * 0.35).toFixed(2)}s`,
+    } as CSSProperties;
+  });
+})();
 
 /** A turning leaf: one page on the front, the next on the back, shaded as it rotates. */
 function Leaf({
@@ -146,7 +160,8 @@ export function AlbumBook({
   meta,
   photos,
   coverColor,
-  coverUrl = null,
+  coverDesign,
+  coverPattern,
   actions,
   pending = false,
   showCoverTitle = true,
@@ -154,7 +169,8 @@ export function AlbumBook({
   meta: BookMeta;
   photos: AlbumPhotoView[];
   coverColor: string;
-  coverUrl?: string | null;
+  coverDesign: BookDesign;
+  coverPattern: BookPattern;
   actions?: ReactNode;
   pending?: boolean;
   showCoverTitle?: boolean;
@@ -202,26 +218,48 @@ export function AlbumBook({
     const { wide: w, reduceMotion: quick } = live.current;
     const d = (s: number) => (quick ? 0 : s);
     playSound("coverOpen", d(COVER_OPEN_S) * 1000);
+    // Moonlight gathers behind the book and a few sparks escape the spine.
+    if (!quick) scope.current?.querySelector("[data-sparks]")?.setAttribute("data-on", "");
+    void animate("[data-glow]", { opacity: [0, 1, 0.55], scale: [0.7, 1.05, 1] }, { duration: d(1.8), ease: "easeOut" });
     if (w) {
+      // Riffle pages exist only on a first opening (not when reopening after Back).
+      const riffle = !quick && (scope.current?.querySelectorAll("[data-riffle]").length ?? 0) === 2;
       await Promise.all([
         animate("[data-binding]", { x: "0%" }, { duration: d(COVER_OPEN_S), ease: EASE_COVER }),
         animate("[data-left]", { opacity: 1 }, { duration: d(0.3), delay: d(0.4), ease: "easeOut" }),
         animate("[data-cover]", { rotateY: -180 }, { duration: d(COVER_OPEN_S), ease: EASE_COVER }),
+        // Two pages flutter down after the cover. They appear edge-on (invisible) as
+        // the cover passes upright, then settle onto the left page.
+        ...(!riffle
+          ? []
+          : [0, 1].map((i) =>
+              animate(
+                `[data-riffle="${i}"]`,
+                { rotateY: [-90, -180] },
+                { duration: 0.5 + i * 0.06, delay: 0.5 + i * 0.14, ease: [0.3, 0.55, 0.3, 1] },
+              ),
+            )),
       ]);
       // Fade a face, never the rotating container: opacity on a preserve-3d element
       // flattens it and breaks backface-visibility (the mirrored cover would show through).
-      await animate("[data-cover-back]", { opacity: 0 }, { duration: d(0.35), ease: "easeOut" });
+      // The riffle pages are flat (not preserve-3d), so they may fade themselves.
+      await Promise.all([
+        animate("[data-cover-back]", { opacity: 0 }, { duration: d(0.35), ease: "easeOut" }),
+        ...(riffle ? [animate("[data-riffle]", { opacity: 0 }, { duration: 0.35, ease: "easeOut" })] : []),
+      ]);
     } else {
       await Promise.all([
         animate("[data-cover]", { rotateY: -110 }, { duration: d(0.8), ease: EASE_COVER }),
         animate("[data-cover-front]", { opacity: 0 }, { duration: d(0.3), delay: d(0.5) }),
       ]);
     }
-  }, [animate]);
+  }, [animate, scope]);
 
   const closeCover = useCallback(async () => {
     const { wide: w, reduceMotion: quick } = live.current;
     const d = (s: number) => (quick ? 0 : s);
+    scope.current?.querySelector("[data-sparks]")?.removeAttribute("data-on");
+    void animate("[data-glow]", { opacity: 0 }, { duration: d(0.6), ease: "easeIn" });
     if (w) {
       await animate("[data-cover-back]", { opacity: 1 }, { duration: d(0.2) });
       playSound("coverClose", d(COVER_CLOSE_S) * 1000);
@@ -237,7 +275,7 @@ export function AlbumBook({
         animate("[data-cover-front]", { opacity: 1 }, { duration: d(0.25) }),
       ]);
     }
-  }, [animate]);
+  }, [animate, scope]);
 
   const handlers = useRef({ openCover, closeCover });
   useEffect(() => {
@@ -260,7 +298,7 @@ export function AlbumBook({
         // pops in mid-animation.
         navigatedAway.current = false;
         await Promise.all([
-          whenImagesReady(scope.current, [coverUrl], 2500),
+          whenImagesReady(scope.current, 2500),
           new Promise((r) => setTimeout(r, live.current.reduceMotion ? 0 : 260)),
         ]);
         if (!active) return;
@@ -277,7 +315,7 @@ export function AlbumBook({
     return () => {
       active = false;
     };
-  }, [phase, pending, coverUrl, router, scope]);
+  }, [phase, pending, router, scope]);
 
   useEffect(() => {
     if (pending || phase !== "open" || warmed.current) return;
@@ -409,7 +447,7 @@ export function AlbumBook({
   const leftHidden: CSSProperties = isClosed && wide ? { opacity: 0 } : {};
 
   const navBtn =
-    "flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full border border-gold/25 bg-white/[0.04] text-gold-soft transition hover:bg-white/10 hover:text-ivory disabled:pointer-events-none disabled:opacity-25";
+    "flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full border border-ivory/12 bg-cosmos/60 text-silver transition hover:border-aurora/45 hover:bg-aurora/[0.08] hover:text-aurora hover:shadow-[0_0_18px_-4px_rgb(131_217_212/0.5)] disabled:pointer-events-none disabled:opacity-25";
 
   return (
     <div ref={scope} className="flex flex-col items-center" style={hydrated ? undefined : { visibility: "hidden" }}>
@@ -418,9 +456,9 @@ export function AlbumBook({
           type="button"
           onClick={close}
           disabled={pending}
-          className="inline-flex cursor-pointer items-center gap-1.5 text-sm text-gold-soft/80 transition-colors hover:text-ivory disabled:cursor-default"
+          className="inline-flex cursor-pointer items-center gap-1.5 rounded-full py-1.5 pr-3 text-sm font-medium text-silver transition-colors hover:text-aurora disabled:cursor-default"
         >
-          <ArrowLeft className="size-4" aria-hidden /> Bookshelf
+          <ArrowLeft className="size-4" aria-hidden /> Back to library
         </button>
         {actions && <div className="flex flex-wrap items-center gap-1.5">{actions}</div>}
       </div>
@@ -435,20 +473,35 @@ export function AlbumBook({
         <div
           data-binding
           className={styles.binding}
-          style={{ "--leather": coverColor, width: bookWidth, ...closedShift } as CSSProperties}
+          style={{ ...bookVars(coverColor), width: bookWidth, ...closedShift } as CSSProperties}
           role="region"
           aria-roledescription="photo album"
           aria-label={pending ? "Opening album" : `${meta.title}. ${label}.`}
           aria-busy={pending || phase !== "open"}
         >
-          {/* Leather boards */}
+          <div data-glow aria-hidden className={styles.magicGlow} style={{ opacity: 0 }} />
+          {/* Now and then a small wizard cat keeps the reader company. */}
+          {wide && !pending && phase === "open" && <AlbumCompanion />}
+          <div data-sparks aria-hidden className={styles.sparks}>
+            {SPARKS.map((v, i) => (
+              <span key={i} style={v} />
+            ))}
+          </div>
+
+          {/* Leather boards, tooled with the album's pattern */}
           {wide ? (
             <>
-              <div data-left aria-hidden className={cn(styles.leather, "left-0 w-1/2 rounded-l-[10px]")} style={leftHidden} />
-              <div aria-hidden className={cn(styles.leather, "right-0 w-1/2 rounded-r-[10px]")} />
+              <div data-left aria-hidden className={cn(styles.leather, "left-0 w-1/2 rounded-l-[10px]")} style={leftHidden}>
+                <PatternLayer pattern={coverPattern} />
+              </div>
+              <div aria-hidden className={cn(styles.leather, "right-0 w-1/2 rounded-r-[10px]")}>
+                <PatternLayer pattern={coverPattern} />
+              </div>
             </>
           ) : (
-            <div aria-hidden className={cn(styles.leather, "inset-x-0 rounded-[10px]")} />
+            <div aria-hidden className={cn(styles.leather, "inset-x-0 rounded-[10px]")}>
+              <PatternLayer pattern={coverPattern} />
+            </div>
           )}
 
           <div className={styles.pagesArea}>
@@ -549,6 +602,14 @@ export function AlbumBook({
                 />
               )}
 
+              {/* Pages that flutter down after the cover while it opens (wide screens) */}
+              {wide &&
+                !pending &&
+                phase === "closed" &&
+                [0, 1].map((i) => (
+                  <motion.div key={i} data-riffle={i} aria-hidden className={styles.riffle} style={{ rotateY: -90 }} />
+                ))}
+
               {/* The front cover (while closed, opening or closing) */}
               {(phase !== "open" || pending) && (
                 <motion.div
@@ -571,12 +632,11 @@ export function AlbumBook({
                     className="absolute inset-0"
                     style={{ backfaceVisibility: "hidden", opacity: phase === "closing" && !wide ? 0 : 1 }}
                   >
-                    <AlbumCover
+                    <BookCover
                       fill
-                      title={showCoverTitle ? meta.title : " "}
-                      color={coverColor}
-                      imageUrl={coverUrl}
-                      className="rounded-l-none"
+                      showTitle={showCoverTitle}
+                      look={{ title: meta.title, color: coverColor, design: coverDesign, pattern: coverPattern }}
+                      className="rounded-l-none rounded-r-[8px]"
                     />
                   </div>
                   <div
@@ -609,7 +669,7 @@ export function AlbumBook({
             <ChevronLeft className="size-5" />
           </button>
         )}
-        <p className="min-w-32 text-center text-sm text-gold-soft/75 tabular-nums" aria-live="polite">
+        <p className="min-w-32 text-center font-serif text-[15px] text-silver tabular-nums italic" aria-live="polite">
           {label}
         </p>
         {!wide && (
@@ -619,7 +679,7 @@ export function AlbumBook({
         )}
       </div>
       {photoPages > 0 && (
-        <p className="mt-2 hidden text-xs text-ivory/35 md:block">Use ← → to turn pages · click a photo to enlarge</p>
+        <p className="mt-2 hidden text-xs text-silver/45 md:block">Use ← → to turn pages · click a photo to enlarge</p>
       )}
 
       {!pending && <Lightbox photos={photos} index={lightbox} onIndexChange={setLightbox} onClose={() => setLightbox(null)} />}

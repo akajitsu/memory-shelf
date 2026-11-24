@@ -1,0 +1,381 @@
+/*
+ * The celestial sky behind every page. Everything here animates only transform or
+ * opacity (compositor work, no repaints), and nothing takes pointer events.
+ */
+
+.sky {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+  background: var(--abyss);
+}
+
+.base {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 75% 45% at 50% 108%, rgb(23 109 120 / 0.28), transparent 72%),
+    radial-gradient(ellipse 50% 35% at 50% 100%, rgb(232 215 139 / 0.05), transparent 70%),
+    linear-gradient(180deg, #060c1e 0%, #0a1430 40%, #0f1c3a 72%, #13264a 100%);
+}
+
+/* --------------------------------------------------------------------- nebulae */
+
+.nebula {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+  animation: drift var(--dur, 90s) var(--ease-float) infinite alternate;
+}
+
+.n1 {
+  --dur: 96s;
+  left: -18vw;
+  top: -22vh;
+  width: 75vw;
+  height: 70vh;
+  background: radial-gradient(closest-side, rgb(27 85 91 / 0.5), rgb(27 85 91 / 0.16) 55%, transparent);
+}
+.n2 {
+  --dur: 118s;
+  right: -22vw;
+  top: 8vh;
+  width: 70vw;
+  height: 75vh;
+  background: radial-gradient(closest-side, rgb(57 59 113 / 0.55), rgb(57 59 113 / 0.18) 55%, transparent);
+  animation-delay: -40s;
+}
+.n3 {
+  --dur: 84s;
+  left: 28vw;
+  top: -12vh;
+  width: 46vw;
+  height: 40vh;
+  background: radial-gradient(closest-side, rgb(168 154 203 / 0.16), rgb(216 156 203 / 0.05) 60%, transparent);
+  animation-delay: -20s;
+}
+.n4 {
+  --dur: 104s;
+  left: -10vw;
+  bottom: -30vh;
+  width: 60vw;
+  height: 60vh;
+  background: radial-gradient(closest-side, rgb(23 109 120 / 0.3), transparent);
+  animation-delay: -60s;
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(6vw, 4vh, 0) scale(1.12);
+  }
+}
+
+/* ------------------------------------------------------------------------ stars */
+
+/* Each layer is wider than the screen by one tile, then slides one tile to the
+   right over minutes: a seamless, endless drift. */
+.stars {
+  position: absolute;
+  top: -60px;
+  bottom: -60px;
+  right: -60px;
+  left: calc(-60px - var(--tile));
+  background-repeat: repeat;
+  will-change: transform, opacity;
+}
+
+.far {
+  --tile: 509px;
+  background-image: url("/sky/stars-far.svg");
+  animation: slide 420s linear infinite;
+}
+.midA {
+  --tile: 733px;
+  background-image: url("/sky/stars-mid-a.svg");
+  animation:
+    slide 300s linear infinite,
+    twinkle 5.6s ease-in-out infinite alternate;
+}
+.midB {
+  --tile: 811px;
+  background-image: url("/sky/stars-mid-b.svg");
+  animation:
+    slide 330s linear infinite,
+    twinkle 7.3s ease-in-out -3s infinite alternate;
+}
+.nearA {
+  --tile: 1201px;
+  background-image: url("/sky/stars-near-a.svg");
+  animation:
+    slide 240s linear infinite,
+    twinkle 4.4s ease-in-out -1s infinite alternate;
+}
+.nearB {
+  --tile: 1399px;
+  background-image: url("/sky/stars-near-b.svg");
+  animation:
+    slide 270s linear infinite,
+    twinkle 6.2s ease-in-out -4s infinite alternate;
+}
+
+@keyframes slide {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(var(--tile), 0, 0);
+  }
+}
+@keyframes twinkle {
+  from {
+    opacity: 0.28;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ------------------------------------------------------------------ astrology */
+
+.zodiac {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  width: max(140vmax, 1200px);
+  max-width: none;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  opacity: 0.1;
+  will-change: transform, opacity;
+  animation:
+    chart-turn 300s linear infinite,
+    chart-breathe 12s ease-in-out infinite alternate;
+  transition: opacity 1.2s ease;
+}
+@keyframes chart-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes chart-breathe {
+  from {
+    opacity: 0.07;
+  }
+  to {
+    opacity: 0.15;
+  }
+}
+
+.constellations {
+  position: absolute;
+  inset: -4%;
+  width: 108%;
+  height: 108%;
+  max-width: none;
+  object-fit: cover;
+  opacity: 0.55;
+  transition: opacity 1.2s ease;
+}
+
+:global(:root[data-sky-mood="calm"]) .zodiac {
+  animation-play-state: running, paused;
+  opacity: 0.05;
+}
+
+/* Bright stars that flare and turn. */
+.flare {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: var(--s);
+  background: radial-gradient(circle, #fff8e0 0 18%, rgb(232 215 139 / 0.6) 35%, transparent 62%);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 0Q13.4 10.6 24 12Q13.4 13.4 12 24Q10.6 13.4 0 12Q10.6 10.6 12 0Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 0Q13.4 10.6 24 12Q13.4 13.4 12 24Q10.6 13.4 0 12Q10.6 10.6 12 0Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  opacity: 0;
+  animation: flare var(--d) ease-in-out var(--delay) infinite;
+}
+@keyframes flare {
+  0%,
+  60%,
+  100% {
+    opacity: 0;
+    transform: scale(0.4) rotate(0deg);
+  }
+  75% {
+    opacity: 0.95;
+    transform: scale(1.15) rotate(45deg);
+  }
+  88% {
+    opacity: 0.4;
+    transform: scale(0.8) rotate(80deg);
+  }
+}
+
+/* Aurora: two soft ribbons rippling along the top of the sky. */
+.aurora {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 46vh;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, black 30%, transparent);
+  mask-image: linear-gradient(to bottom, black 30%, transparent);
+}
+.ribbonA,
+.ribbonB {
+  position: absolute;
+  left: -30%;
+  width: 160%;
+  border-radius: 50%;
+  will-change: transform, opacity;
+}
+.ribbonA {
+  top: -6vh;
+  height: 26vh;
+  background:
+    radial-gradient(ellipse 30% 60% at 25% 60%, rgb(131 217 212 / 0.16), transparent 70%),
+    radial-gradient(ellipse 26% 50% at 60% 50%, rgb(23 109 120 / 0.22), transparent 70%),
+    radial-gradient(ellipse 22% 55% at 85% 65%, rgb(131 217 212 / 0.12), transparent 70%);
+  animation: ribbon 22s ease-in-out infinite alternate;
+}
+.ribbonB {
+  top: 4vh;
+  height: 22vh;
+  background:
+    radial-gradient(ellipse 28% 55% at 35% 50%, rgb(168 154 203 / 0.16), transparent 70%),
+    radial-gradient(ellipse 24% 50% at 75% 55%, rgb(216 156 203 / 0.08), transparent 70%);
+  animation: ribbon 28s ease-in-out -9s infinite alternate-reverse;
+}
+@keyframes ribbon {
+  0% {
+    transform: translate3d(-6%, 0, 0) scaleY(0.85) skewX(-6deg);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate3d(2%, 2vh, 0) scaleY(1.15) skewX(4deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(8%, -1vh, 0) scaleY(0.95) skewX(-3deg);
+    opacity: 0.7;
+  }
+}
+:global(:root[data-sky-mood="calm"]) .aurora {
+  opacity: 0.4;
+}
+:global(:root[data-sky-mood="calm"]) .constellations {
+  opacity: 0.3;
+}
+
+/* --------------------------------------------------------------- shooting star */
+
+.shooting {
+  position: absolute;
+  left: var(--sx);
+  top: var(--sy);
+  width: 180px;
+  height: 1.5px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, rgb(240 235 221 / 0.15) 40%, rgb(240 235 221 / 0.95));
+  box-shadow: 0 0 8px 1px rgb(232 215 139 / 0.35);
+  transform-origin: right center;
+  rotate: var(--angle);
+  opacity: 0;
+  animation: shoot 1.3s cubic-bezier(0.3, 0.1, 0.3, 1) forwards;
+}
+
+@keyframes shoot {
+  0% {
+    opacity: 0;
+    transform: translateX(-60px) scaleX(0.2);
+  }
+  15% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(260px) scaleX(1);
+  }
+}
+
+/* ------------------------------------------------------------------------ motes */
+/* (twinkle and drift for the star layers are defined above) */
+
+.motes {
+  position: absolute;
+  inset: 0;
+  transition: opacity 1.2s ease;
+}
+
+.mote {
+  position: absolute;
+  left: var(--x);
+  bottom: -24px;
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--c) 0 18%, color-mix(in srgb, var(--c) 30%, transparent) 40%, transparent 70%);
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: rise var(--d) linear var(--delay) infinite;
+}
+
+@keyframes rise {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0);
+  }
+  12% {
+    opacity: var(--o);
+  }
+  30% {
+    transform: translate3d(var(--sway), -32vh, 0);
+  }
+  55% {
+    transform: translate3d(calc(var(--sway) * -0.6), -60vh, 0);
+  }
+  80% {
+    opacity: var(--o);
+    transform: translate3d(var(--sway), -86vh, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, -110vh, 0);
+  }
+}
+
+/* ----------------------------------------------------------------- calm & small */
+
+/* While a photo album is open the sky settles down: no motes, quieter stars. */
+:global(:root[data-sky-mood="calm"]) .motes {
+  opacity: 0;
+}
+:global(:root[data-sky-mood="calm"]) .nearA,
+:global(:root[data-sky-mood="calm"]) .nearB {
+  animation-play-state: paused;
+}
+
+@media (max-width: 640px) {
+  .midB,
+  .nearB,
+  .n3 {
+    display: none;
+  }
+  .mote:nth-child(n + 8) {
+    display: none;
+  }
+}
+
+/* Background tabs: freeze everything (browsers mostly do this already). */
+:global(:root[data-hidden]) .sky * {
+  animation-play-state: paused;
+}

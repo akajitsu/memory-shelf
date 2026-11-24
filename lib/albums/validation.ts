@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES } from "@/lib/constants";
+import { BOOK_DESIGNS, BOOK_PATTERNS } from "@/lib/book-design";
 
 export const albumIdSchema = z.uuid("Invalid album.");
 
@@ -11,12 +11,8 @@ export const albumFieldsSchema = z.object({
     .max(1000, "Use 1,000 characters or fewer.")
     .transform((v) => (v === "" ? null : v)),
   coverColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Choose a cover color."),
+  coverDesign: z.enum(BOOK_DESIGNS, "Choose a book design."),
+  coverPattern: z.enum(BOOK_PATTERNS, "Choose a pattern."),
 });
 
 export type AlbumFields = z.input<typeof albumFieldsSchema>;
-
-export const uploadRequestSchema = z.object({
-  albumId: albumIdSchema,
-  contentType: z.enum(ALLOWED_IMAGE_TYPES),
-  size: z.number().int().positive().max(MAX_IMAGE_BYTES, "Files must be 10 MB or smaller."),
-});

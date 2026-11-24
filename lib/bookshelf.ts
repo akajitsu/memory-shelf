@@ -1,12 +1,4 @@
-/** Deterministic 0..1 value from a string, so a book keeps its look across renders. */
-function hash01(input: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < input.length; i++) {
-    h ^= input.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return ((h >>> 0) % 1000) / 1000;
-}
+import { hash01 } from "@/lib/random";
 
 /** Book size in unscaled px: thicker with more photos, height varies a little per album. */
 export function bookDimensions(id: string, photoCount: number) {
@@ -15,15 +7,17 @@ export function bookDimensions(id: string, photoCount: number) {
   return { thickness, height, depth: 150 };
 }
 
-/** Pick a readable foil color for text on a given leather color. */
-export function foilFor(hex: string): { text: string; band: string } {
-  const n = parseInt(hex.slice(1), 16);
-  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((c) => {
-    const s = c / 255;
-    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
-  });
-  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  return luminance > 0.32
-    ? { text: "#2a1d14", band: "rgb(42 29 20 / 0.55)" }
-    : { text: "#ecd9ae", band: "rgb(212 187 138 / 0.75)" };
+/** Gentle levitation for a book on the shelf: its own period, delay and height. */
+export function floatFor(id: string) {
+  const a = hash01(id + "a");
+  const b = hash01(id + "b");
+  return { period: 5.5 + a * 3.5, delay: -b * 8, lift: 3 + a * 3 };
+}
+
+/** Pose for a book drifting in the Floating library: tilt, turn toward its cover, height offset. */
+export function driftFor(id: string) {
+  const a = hash01(id + "t");
+  const b = hash01(id + "u");
+  const c = hash01(id + "o");
+  return { tilt: (a - 0.5) * 16, turn: -22 - b * 20, offset: Math.round(c * 72), sway: 1.2 + a * 2.4 };
 }

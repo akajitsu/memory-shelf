@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { peekBookHandoff } from "@/lib/book-handoff";
+import { DEFAULT_BOOK } from "@/lib/book-design";
 import { AlbumBook } from "./album-book";
 
 /**
  * Loading state for an album: the same closed book, in the same place, using the
- * color/title/cover handed over by the bookshelf. When the data arrives the real
- * AlbumBook renders the identical closed book, then opens it.
+ * color, design and title handed over by the bookshelf. When the data arrives the
+ * real AlbumBook renders the identical closed book, then opens it.
  */
 export function AlbumBookPlaceholder() {
   const [handoff] = useState(() => peekBookHandoff());
@@ -15,8 +16,9 @@ export function AlbumBookPlaceholder() {
     <AlbumBook
       pending
       showCoverTitle={!!handoff}
-      coverColor={handoff?.coverColor ?? "#4a3324"}
-      coverUrl={handoff?.coverUrl ?? null}
+      coverColor={handoff?.coverColor ?? "#152747"}
+      coverDesign={handoff?.coverDesign ?? DEFAULT_BOOK.design}
+      coverPattern={handoff?.coverPattern ?? "none"}
       photos={[]}
       meta={{
         id: handoff?.id ?? "",

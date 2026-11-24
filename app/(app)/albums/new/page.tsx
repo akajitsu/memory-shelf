@@ -15,19 +15,25 @@ async function Guarded() {
 
 export default function NewAlbumPage() {
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 pt-8 pb-16 sm:px-6 sm:pt-10">
+    <main className="mx-auto w-full max-w-6xl px-4 pt-8 pb-16 sm:px-6 sm:pt-10">
       <PageTransition>
         <Link
           href="/library"
           transitionTypes={NAV_BACK}
-          className="inline-flex items-center gap-1.5 text-sm text-gold-soft/80 transition-colors hover:text-ivory"
+          className="inline-flex items-center gap-1.5 rounded-full py-1 pr-2 text-sm font-medium text-silver transition-colors hover:text-aurora"
         >
-          <ArrowLeft className="size-4" aria-hidden /> Bookshelf
+          <ArrowLeft className="size-4" aria-hidden /> My library
         </Link>
-        <h1 className="mt-4 mb-8 font-serif text-4xl font-medium tracking-tight text-ivory sm:text-5xl">
-          Bind a new album
-        </h1>
-        <Suspense fallback={<div className="h-96 animate-pulse rounded-2xl bg-white/[0.04]" />}>
+        <div className="mt-4 mb-9">
+          <p className="eyebrow text-aurora/80">A new volume</p>
+          <h1 className="mt-2 title-gilt font-ornate text-[32px] leading-[1.12] font-normal text-ivory sm:text-[42px]">
+            Bind a new album
+          </h1>
+          <p className="mt-2 max-w-lg text-sm text-silver/80">
+            Give your memories a name and a binding. The book will float onto your shelf; the photographs go inside.
+          </p>
+        </div>
+        <Suspense fallback={<div className="h-96 animate-pulse rounded-3xl bg-cosmos/60" />}>
           <Guarded />
         </Suspense>
       </PageTransition>

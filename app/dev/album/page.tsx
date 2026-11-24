@@ -6,6 +6,7 @@ import { AlbumForm } from "@/components/albums/album-form";
 import { AppHeader } from "@/components/layout/app-header";
 import { UserMenu } from "@/components/layout/user-menu";
 import { PhotoManager } from "@/components/photos/photo-manager";
+import { CelestialSky } from "@/components/sky/celestial-sky";
 import type { AlbumPhotoView } from "@/types/app";
 
 // Development-only visual preview of album screens with sample data. 404 in production.
@@ -32,6 +33,9 @@ const palette: [string, string, string, string][] = [
   ["#ffd9a0", "#e08a3c", "#fff7d6", "#6b3a1e"],
   ["#c9d6ea", "#6d7fa6", "#f6f2ff", "#28344d"],
   ["#efe0c0", "#b89a62", "#ffffff", "#5a4030"],
+  ["#b9e0dc", "#3f8c8a", "#fffbe8", "#1b555b"],
+  ["#e6c6e0", "#8a5a8f", "#fff4fb", "#393b71"],
+  ["#f2d7a6", "#a8723f", "#fff8e6", "#4e2f5e"],
 ];
 const captions = [
   "The first morning, coffee by the river",
@@ -41,6 +45,9 @@ const captions = [
   "Grandpa’s favourite bench",
   null,
   "Last night of the trip",
+  "Harbour lights",
+  null,
+  "Pastéis de nata, again",
 ];
 
 const photos: AlbumPhotoView[] = palette.map(([a, b, s, h], i) => ({
@@ -50,6 +57,7 @@ const photos: AlbumPhotoView[] = palette.map(([a, b, s, h], i) => ({
   name: `IMG_${2040 + i}.jpg`,
   caption: captions[i],
   order: i,
+  addedAt: `2026-07-${String(14 + i).padStart(2, "0")}T10:00:00Z`,
 }));
 
 const meta = {
@@ -70,19 +78,22 @@ async function View({ searchParams }: { searchParams: PageProps<"/dev/album">["s
   const shown = remote
     ? photos.map((p, i) => ({ ...p, url: `/dev/sample-photo?i=${i}&delay=${remote}`, thumbUrl: null }))
     : photos;
+  const book = { coverColor: "#1b555b", coverDesign: "celestial", coverPattern: "stars" } as const;
   if (view === "new") return <AlbumForm />;
-  if (view === "edit") return <AlbumForm initial={{ ...meta, coverColor: "#6b2a2a", coverUrl: photos[0].url }} />;
+  if (view === "edit")
+    return <AlbumForm initial={{ ...meta, coverColor: "#6b3249", coverDesign: "arch", coverPattern: "filigree" }} />;
   if (view === "manage") return <PhotoManager albumId={meta.id} photos={photos} />;
-  if (view === "empty") return <AlbumBook meta={{ ...meta, photoCount: 0 }} photos={[]} coverColor="#2f4a3a" />;
-  return <AlbumBook meta={meta} photos={shown} coverColor="#6b2a2a" />;
+  if (view === "empty") return <AlbumBook meta={{ ...meta, photoCount: 0 }} photos={[]} {...book} coverColor="#2f4a3a" />;
+  return <AlbumBook meta={meta} photos={shown} {...book} />;
 }
 
 export default function DevAlbumPage({ searchParams }: PageProps<"/dev/album">) {
   if (process.env.NODE_ENV !== "development" && process.env.ENABLE_DEV_PREVIEW !== "1") notFound();
   return (
-    <div className="relative flex min-h-dvh flex-1 flex-col bg-walnut-deep">
+    <div className="relative flex min-h-dvh flex-1 flex-col overflow-x-clip">
+      <CelestialSky />
       <AppHeader userSlot={<UserMenu user={{ id: "dev", email: "reader@example.com", fullName: "Avery Reader", avatarUrl: null }} />} />
-      <main className="mx-auto w-full max-w-6xl px-3 pt-6 pb-12 sm:px-6">
+      <main className="relative z-[1] mx-auto w-full max-w-6xl px-3 pt-6 pb-12 sm:px-6">
         <Suspense fallback={<AlbumBookPlaceholder />}>
           <View searchParams={searchParams} />
         </Suspense>

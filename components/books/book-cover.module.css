@@ -1,0 +1,272 @@
+/*
+ * The front cover of an album book. Sized by its container; every length uses
+ * container-query units so the same cover works on a shelf (≈150px wide), in the
+ * create-form preview and as the album's full-size closed cover.
+ */
+
+.cover {
+  container-type: size;
+  position: relative;
+  overflow: hidden;
+  color: var(--foil);
+  background-color: var(--leather);
+  /* Lighting, then leather grain (two offset speckle grids). */
+  background-image:
+    linear-gradient(90deg, rgb(0 0 0 / 0.5) 0%, rgb(0 0 0 / 0.16) 5%, rgb(255 255 255 / 0.07) 7.5%, transparent 13%),
+    linear-gradient(158deg, rgb(255 255 255 / 0.13), transparent 38%, transparent 62%, rgb(0 0 0 / 0.3)),
+    radial-gradient(circle at 30% 40%, rgb(255 255 255 / 0.05) 0 0.6px, transparent 1.2px),
+    radial-gradient(circle at 70% 70%, rgb(0 0 0 / 0.14) 0 0.7px, transparent 1.4px);
+  background-size:
+    100% 100%,
+    100% 100%,
+    5px 5px,
+    7px 7px;
+  border-radius: 2px 6px 6px 2px;
+  box-shadow:
+    inset 0 0 0 1px rgb(0 0 0 / 0.35),
+    inset 0 1px 0 rgb(255 255 255 / 0.08);
+}
+
+.fill {
+  width: 100%;
+  height: 100%;
+}
+.ratio {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+}
+
+.pattern {
+  position: absolute;
+  inset: 0;
+  background: var(--foil);
+  opacity: 0.16;
+  -webkit-mask-repeat: repeat;
+  mask-repeat: repeat;
+}
+.light .pattern {
+  opacity: 0.2;
+}
+
+/* Hinge groove near the spine */
+.hinge {
+  position: absolute;
+  inset-block: 0;
+  left: 8.5cqw;
+  width: 1px;
+  background: rgb(0 0 0 / 0.38);
+  box-shadow: 1px 0 0 rgb(255 255 255 / 0.08);
+}
+
+/* The gilt layer: frame, ornaments and title. A soft glow on dark leathers. */
+.gilt {
+  position: absolute;
+  inset: 6.5cqw 6.5cqw 6.5cqw 13cqw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  filter: drop-shadow(0 0 1.6cqw var(--glow));
+}
+
+.rule {
+  position: absolute;
+  inset: 0;
+  border: max(1px, 0.55cqw) solid var(--band);
+}
+.rule::after {
+  content: "";
+  position: absolute;
+  inset: 2.2cqw;
+  border: max(1px, 0.3cqw) solid var(--band);
+}
+.single::after {
+  display: none;
+}
+
+.corner {
+  position: absolute;
+  width: 15cqw;
+  height: 15cqw;
+  color: var(--foil);
+}
+.tl {
+  top: 2.8cqw;
+  left: 2.8cqw;
+}
+.tr {
+  top: 2.8cqw;
+  right: 2.8cqw;
+  transform: scaleX(-1);
+}
+.bl {
+  bottom: 2.8cqw;
+  left: 2.8cqw;
+  transform: scaleY(-1);
+}
+.br {
+  bottom: 2.8cqw;
+  right: 2.8cqw;
+  transform: scale(-1, -1);
+}
+
+.cornerStar {
+  position: absolute;
+  width: 6cqw;
+  height: 6cqw;
+  color: var(--foil);
+  transform: translate(-50%, -50%);
+}
+
+.title {
+  font-family: var(--font-title);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.12;
+  text-align: center;
+  color: var(--foil);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-shadow: 0 0.3cqw 0 rgb(0 0 0 / 0.35);
+  font-size: 9.2cqw;
+  -webkit-line-clamp: 4;
+  max-width: 88%;
+}
+.light .title {
+  text-shadow: 0 0.3cqw 0 rgb(255 255 255 / 0.3);
+}
+.titleSmall {
+  font-size: 7.8cqw;
+  -webkit-line-clamp: 3;
+}
+
+.divider {
+  width: 42cqw;
+  height: auto;
+  color: var(--foil);
+  flex: none;
+}
+
+/* ------------------------------------------------------------ per design */
+
+.cornerGlyph {
+  position: absolute;
+  width: 7.5cqw;
+  height: 7.5cqw;
+  color: var(--foil);
+}
+.c0 {
+  top: 3.4cqw;
+  left: 3.4cqw;
+}
+.c1 {
+  top: 3.4cqw;
+  right: 3.4cqw;
+}
+.c2 {
+  bottom: 3.4cqw;
+  left: 3.4cqw;
+}
+.c3 {
+  bottom: 3.4cqw;
+  right: 3.4cqw;
+}
+
+.phases {
+  width: 54cqw;
+  flex: none;
+  color: var(--foil);
+}
+.phasesFlip {
+  transform: scaleX(-1);
+}
+
+/* Zodiac Wheel */
+.zodiac {
+  justify-content: flex-start;
+  padding: 11cqh 6cqw 7cqh;
+  gap: 2.6cqh;
+}
+.zodiac .wheel {
+  width: 66cqw;
+  flex: none;
+  margin-top: auto;
+}
+.zodiac .phases {
+  margin-top: auto;
+  width: 46cqw;
+}
+
+/* Lunar Phases */
+.lunar {
+  justify-content: space-between;
+  padding: 9cqh 7cqw 8cqh;
+}
+.crescent {
+  width: 46cqw;
+  flex: none;
+  color: var(--foil);
+}
+.lunar .constellation {
+  width: 46cqw;
+  flex: none;
+}
+
+/* Observatory */
+.arch {
+  justify-content: flex-end;
+  padding: 0 8cqw 11cqh;
+  gap: 3cqh;
+}
+.archFrame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  color: var(--band);
+}
+.keystone {
+  position: absolute;
+  top: 7.5cqh;
+  left: 50%;
+  width: 10cqw;
+  height: 10cqw;
+  transform: translateX(-50%);
+  color: var(--foil);
+}
+.observatory {
+  position: relative;
+  width: 64cqw;
+  aspect-ratio: 1;
+  flex: none;
+  margin-bottom: auto;
+  margin-top: 23cqh;
+}
+.armillary,
+.figure {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.armillary {
+  opacity: 0.65;
+}
+.figure {
+  inset: 16%;
+  width: 68%;
+  height: 68%;
+}
+
+/* Astrolabe */
+.astrolabe {
+  justify-content: flex-start;
+  padding: 6cqh 6cqw 8cqh;
+  gap: 2.4cqh;
+}
+.instrument {
+  width: 72cqw;
+  flex: none;
+}

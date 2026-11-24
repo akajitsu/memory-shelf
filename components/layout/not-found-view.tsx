@@ -10,16 +10,16 @@ import { BookX } from "lucide-react";
 export function NotFoundView() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-5 px-4 py-24 text-center text-ivory">
-      <BookX className="size-10 text-gold" aria-hidden />
-      <h1 className="font-serif text-4xl font-medium sm:text-5xl">This page isn’t on the shelf</h1>
-      <p className="max-w-md text-sm text-ivory/65">
+      <BookX className="size-10 text-moon drop-shadow-[0_0_12px_rgb(232_215_139/0.5)]" aria-hidden />
+      <h1 className="title-gilt font-ornate text-[32px] leading-tight font-normal sm:text-[42px]">This page isn’t on the shelf</h1>
+      <p className="max-w-md text-sm text-silver/80">
         The album or page you’re looking for doesn’t exist, or it belongs to someone else’s library.
       </p>
       <Link
         href="/library"
-        className="mt-2 inline-flex h-11 items-center rounded-lg bg-gold px-5 text-sm font-medium text-walnut-deep transition-colors hover:bg-gold-soft"
+        className="mt-2 inline-flex h-11 items-center rounded-full bg-moon px-6 text-sm font-semibold text-abyss transition-colors hover:bg-[#f0e3a6]"
       >
-        Back to your bookshelf
+        Back to your library
       </Link>
     </div>
   );

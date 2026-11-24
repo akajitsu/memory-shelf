@@ -10,6 +10,7 @@ import { FlashToast } from "@/components/ui/flash-toast";
 import { getAlbum } from "@/lib/data/albums";
 import { getAlbumPhotos } from "@/lib/data/photos";
 import { NotFoundView } from "@/components/layout/not-found-view";
+import { SkyMood } from "@/components/sky/celestial-sky";
 
 export async function generateMetadata({ params }: PageProps<"/albums/[id]">): Promise<Metadata> {
   const album = await getAlbum((await params).id);
@@ -29,7 +30,7 @@ async function AlbumContent({ params, searchParams }: PageProps<"/albums/[id]">)
       <Link
         href={`/albums/${album.id}/photos`}
         transitionTypes={NAV_FORWARD}
-        className="inline-flex h-10 items-center gap-2 rounded-lg bg-gold px-3.5 text-sm font-medium text-walnut-deep transition-colors hover:bg-gold-soft"
+        className="inline-flex h-10 items-center gap-2 rounded-full border border-moon/40 bg-moon/[0.08] px-4 text-sm font-semibold text-moon transition-[background-color,border-color] hover:border-moon/70 hover:bg-moon/[0.14]"
       >
         <ImagePlus className="size-4" aria-hidden />
         {album.photoCount ? (
@@ -45,7 +46,7 @@ async function AlbumContent({ params, searchParams }: PageProps<"/albums/[id]">)
         href={`/albums/${album.id}/edit`}
         transitionTypes={NAV_FORWARD}
         aria-label="Edit album"
-        className="inline-flex h-10 items-center gap-2 rounded-lg px-3 text-sm text-ivory/80 transition-colors hover:bg-white/5 hover:text-ivory sm:px-3.5"
+        className="inline-flex h-10 items-center gap-2 rounded-full px-3 text-sm font-medium text-silver transition-colors hover:bg-white/[0.06] hover:text-aurora sm:px-3.5"
       >
         <Pencil className="size-4" aria-hidden /> <span className="hidden sm:inline">Edit</span>
       </Link>
@@ -59,7 +60,8 @@ async function AlbumContent({ params, searchParams }: PageProps<"/albums/[id]">)
       <h1 className="sr-only">{album.title}</h1>
       <AlbumBook
         coverColor={album.coverColor}
-        coverUrl={album.coverUrl}
+        coverDesign={album.coverDesign}
+        coverPattern={album.coverPattern}
         photos={photos}
         actions={actions}
         meta={{
@@ -76,7 +78,9 @@ async function AlbumContent({ params, searchParams }: PageProps<"/albums/[id]">)
 
 export default function AlbumPage(props: PageProps<"/albums/[id]">) {
   return (
-    <main className="mx-auto w-full max-w-6xl overflow-x-clip px-3 pt-6 pb-12 sm:px-6">
+    <main className="mx-auto w-full max-w-6xl px-3 pt-6 pb-12 sm:px-6">
+      {/* The sky settles while a book is open, so the photographs hold the attention. */}
+      <SkyMood mood="calm" />
       <PageTransition>
         {/* The loading state is the same closed book, so the swap is seamless and the
             book itself animates open (no extra fade/rise on top of it). */}

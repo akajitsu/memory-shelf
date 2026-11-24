@@ -1,42 +1,134 @@
 /*
- * CSS 3D bookcase.
- * Each book is a box: spine (front), cover (right side), page block (top).
- * Shelves are drawn as a repeating background so rows wrap naturally.
+ * The floating bookcase: an arched crown and two slender columns of dark teal wood
+ * with gilt inlay, open to the sky behind, and shelves that float with lit edges.
+ * Each book is a CSS 3D box: spine (front), cover (right side), page block (top).
+ * Shelves are a repeating background, so rows wrap without JS measurement.
  */
 
 .case {
   --scale: 1;
   --row: 300px;
-  --plank: 18px;
-  --frame: 18px;
+  --plank: 16px;
+  --frame: 22px;
   position: relative;
-  border-radius: 6px;
-  box-shadow:
-    0 40px 80px -30px rgb(0 0 0 / 0.8),
-    0 0 0 1px rgb(0 0 0 / 0.4);
+  isolation: isolate;
+  /* Headroom for whatever rests on the crown */
+  margin-top: 56px;
 }
 
 @media (max-width: 640px) {
   .case {
     --scale: 0.72;
     --row: 228px;
-    --plank: 14px;
-    --frame: 10px;
+    --plank: 13px;
+    --frame: 12px;
   }
 }
 
+/* -------------------------------------------------------------- architecture */
+
 .crown {
-  height: calc(var(--frame) + 10px);
-  border-radius: 6px 6px 0 0;
-  background: linear-gradient(to bottom, #6e4c33, #563a27 55%, #3e291b);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12);
+  position: relative;
+  height: clamp(54px, 8vw, 92px);
+  margin-inline: calc(var(--frame) * -0.4);
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  background:
+    radial-gradient(ellipse 30% 90% at 50% 100%, rgb(232 215 139 / 0.12), transparent 70%),
+    /* carved fluting */
+    repeating-linear-gradient(90deg, rgb(0 0 0 / 0.14) 0 1px, transparent 1px 7px, rgb(255 255 255 / 0.03) 7px 8px, transparent 8px 14px),
+    linear-gradient(to bottom, #1f5059, #153c45 55%, #0f2c35);
+  box-shadow:
+    inset 0 1px 0 rgb(131 217 212 / 0.35),
+    0 -12px 40px -16px rgb(131 217 212 / 0.25);
+}
+/* Gilt inlay following the arch */
+.crown::before {
+  content: "";
+  position: absolute;
+  inset: 9px 18px 0;
+  border: 1px solid rgb(232 215 139 / 0.4);
+  border-bottom: none;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+}
+/* Cornice with a frieze of tiny gilt stars */
+.crown::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 12px;
+  background:
+    radial-gradient(circle at 50% 50%, rgb(232 215 139 / 0.75) 0 1px, transparent 1.6px) center / 22px 12px repeat-x,
+    linear-gradient(to bottom, #12343e, #0b222a);
+  box-shadow:
+    0 -1px 0 rgb(232 215 139 / 0.3),
+    0 1px 0 rgb(232 215 139 / 0.28);
+}
+/* A zodiac wheel rising behind the crescent, clipped to the arch. */
+.crownArt {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+.crownWheel {
+  position: absolute;
+  left: 50%;
+  top: 14%;
+  width: clamp(200px, 30vw, 380px);
+  translate: -50% 0;
+  color: var(--moon);
+  opacity: 0.32;
+  animation: crown-turn 120s linear infinite;
+}
+@keyframes crown-turn {
+  to {
+    rotate: 360deg;
+  }
 }
 
-.plinth {
-  height: calc(var(--frame) + 14px);
-  border-radius: 0 0 6px 6px;
-  background: linear-gradient(to bottom, #4f3524, #3a2619);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
+.keystone {
+  position: absolute;
+  left: 50%;
+  top: 2px;
+  width: clamp(30px, 4vw, 44px);
+  translate: -50% -42%;
+  filter: drop-shadow(0 0 10px rgb(232 215 139 / 0.5));
+  animation: moon-glow 5s ease-in-out infinite alternate;
+}
+@keyframes moon-glow {
+  from {
+    filter: drop-shadow(0 0 6px rgb(232 215 139 / 0.35));
+    transform: rotate(-4deg);
+  }
+  to {
+    filter: drop-shadow(0 0 18px rgb(232 215 139 / 0.8));
+    transform: rotate(4deg);
+  }
+}
+
+/* Moonlight pouring down from the crescent over the shelves. */
+.moonbeam {
+  position: absolute;
+  left: 50%;
+  top: -36px;
+  width: min(70%, 640px);
+  height: 140%;
+  translate: -50% 0;
+  background: conic-gradient(from 160deg at 50% 0%, transparent 0deg, rgb(232 215 139 / 0.12) 20deg, rgb(232 215 139 / 0.05) 30deg, transparent 40deg);
+  -webkit-mask-image: linear-gradient(to bottom, black, transparent 85%);
+  mask-image: linear-gradient(to bottom, black, transparent 85%);
+  pointer-events: none;
+  z-index: 21;
+  animation: beam 8s ease-in-out infinite alternate;
+}
+@keyframes beam {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .body {
@@ -45,13 +137,33 @@
 }
 
 .side {
+  position: relative;
   width: var(--frame);
   flex-shrink: 0;
-  background: linear-gradient(to right, #5c3e2a, #6e4c33 40%, #4a3122);
+  background: linear-gradient(to right, #0d2a32, #1d4f58 45%, #123842 70%, #0b232b);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.25);
 }
-
-.side + .shelves + .side {
-  background: linear-gradient(to left, #5c3e2a, #6e4c33 40%, #4a3122);
+/* Capital at the top of each column */
+.side::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -5px;
+  right: -5px;
+  height: 14px;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, #245b64, #123842);
+  box-shadow:
+    inset 0 -1px 0 rgb(232 215 139 / 0.45),
+    0 3px 6px rgb(0 0 0 / 0.35);
+}
+/* Gilt line down each column */
+.side::after {
+  content: "";
+  position: absolute;
+  inset: 22px auto 10px 50%;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, rgb(232 215 139 / 0.45) 12%, rgb(232 215 139 / 0.45) 88%, transparent);
 }
 
 .shelves {
@@ -62,46 +174,78 @@
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;
-  column-gap: calc(3px * var(--scale));
-  padding-inline: clamp(10px, 3vw, 36px);
+  column-gap: calc(5px * var(--scale));
+  padding-inline: clamp(10px, 3vw, 40px);
   background:
-    /* shadow each plank casts onto the wall of the row below */
-    repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.55) 0, rgb(0 0 0 / 0) 26px, rgb(0 0 0 / 0) var(--row)),
-    /* planks */
+    /* light spilling down from each lit plank onto the row below */
+    repeating-linear-gradient(to bottom, rgb(131 217 212 / 0.07) 0, rgb(131 217 212 / 0) 34px, rgb(131 217 212 / 0) var(--row)),
+    /* floating planks: lit top edge, teal wood, gilt underside */
     repeating-linear-gradient(
       to bottom,
       transparent 0,
       transparent calc(var(--row) - var(--plank)),
-      #8a6545 calc(var(--row) - var(--plank)),
-      #9b7451 calc(var(--row) - var(--plank) + 2px),
-      #634229 calc(var(--row) - var(--plank) + 3px),
-      #4d3320 calc(var(--row) - 4px),
-      #2c1c11 var(--row)
+      rgb(131 217 212 / 0.7) calc(var(--row) - var(--plank)),
+      #2a6670 calc(var(--row) - var(--plank) + 1px),
+      #1d4c56 calc(var(--row) - var(--plank) + 3px),
+      #143a44 calc(var(--row) - 5px),
+      #0d2730 calc(var(--row) - 2px),
+      rgb(232 215 139 / 0.45) calc(var(--row) - 1px),
+      rgb(232 215 139 / 0.45) var(--row)
     ),
-    /* faint vertical grain on the back panel */
-    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.012) 0 2px, transparent 2px 9px),
-    #1f150e;
+    /* a faint dusk between the columns keeps spines legible over the stars */
+    linear-gradient(to bottom, rgb(8 15 35 / 0.35), rgb(8 15 35 / 0.5));
 }
 
-/* Warm lamp light falling on the case */
+/* Moonlight falling on the case from above */
 .glow {
   pointer-events: none;
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 65% 55% at 50% 0%, rgb(255 210 150 / 0.13), transparent 70%);
-  mix-blend-mode: screen;
+  background: radial-gradient(ellipse 60% 45% at 50% 0%, rgb(232 215 139 / 0.09), transparent 70%);
   z-index: 20;
 }
 
-/* One position on a shelf */
+.plinth {
+  position: relative;
+  height: calc(var(--frame) + 12px);
+  margin-inline: calc(var(--frame) * -0.4);
+  border-radius: 0 0 50% 50% / 0 0 100% 100%;
+  background: linear-gradient(to bottom, #174650, #0e2a33 60%, #091d24);
+  box-shadow:
+    inset 0 1px 0 rgb(232 215 139 / 0.3),
+    0 30px 60px -20px rgb(23 109 120 / 0.55);
+}
+/* The whole case floats: a soft pool of light beneath it */
+.plinth::after {
+  content: "";
+  position: absolute;
+  left: 15%;
+  right: 15%;
+  top: 100%;
+  height: 60px;
+  background: radial-gradient(ellipse at top, rgb(131 217 212 / 0.16), transparent 70%);
+}
+
+.perch {
+  position: absolute;
+  z-index: 25;
+  bottom: calc(100% - 10px);
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------- one slot */
+
 .slot {
   position: relative;
   height: var(--row);
-  padding-bottom: var(--plank);
+  padding-bottom: calc(var(--plank) + 5px * var(--scale));
   display: flex;
   align-items: flex-end;
-  perspective: 1100px;
-  perspective-origin: 50% -30%;
+  animation: arrive 900ms var(--ease-out-soft) backwards;
+  animation-delay: calc(120ms + var(--i, 0) * 45ms);
+  transition:
+    opacity 380ms ease,
+    filter 380ms ease;
 }
 
 .slot:hover,
@@ -109,11 +253,57 @@
   z-index: 10;
 }
 
+/* Books drift down onto their shelf when the library opens. */
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -28px, 0) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Gentle levitation: each book has its own rhythm. */
+.float {
+  position: relative;
+  animation: bob var(--period, 6s) var(--ease-float) var(--delay, 0s) infinite alternate;
+}
+@keyframes bob {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, calc(var(--lift, 4) * -1px * var(--scale)), 0);
+  }
+}
+
 .link {
   display: block;
   border-radius: 3px;
   outline: none;
+  perspective: 1100px;
+  perspective-origin: 50% -45%;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Halo behind a book: hover, focus and opening. */
+.halo {
+  position: absolute;
+  left: 50%;
+  bottom: 8%;
+  width: 260%;
+  height: 90%;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(232 215 139 / 0.3), rgb(131 217 212 / 0.1) 55%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 380ms ease,
+    transform 520ms var(--ease-out-soft);
+  z-index: -1;
 }
 
 /* ---------------------------------------------------------------- the book */
@@ -127,7 +317,7 @@
   height: var(--hh);
   transform-style: preserve-3d;
   transform: translateZ(calc(var(--dd) * -0.5));
-  transition: transform 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: transform 520ms var(--ease-out-soft);
 }
 
 .face {
@@ -139,52 +329,89 @@
   inset: 0;
   transform: translateZ(calc(var(--dd) * 0.5));
   border-radius: 2px 2px 1px 1px;
-  background:
+  color: var(--foil);
+  background-color: var(--leather);
+  background-image:
     linear-gradient(
       90deg,
-      rgb(0 0 0 / 0.42) 0%,
+      rgb(0 0 0 / 0.45) 0%,
       rgb(255 255 255 / 0.06) 18%,
-      rgb(255 255 255 / 0.13) 36%,
+      rgb(255 255 255 / 0.14) 36%,
       rgb(0 0 0 / 0.02) 62%,
-      rgb(0 0 0 / 0.45) 100%
+      rgb(0 0 0 / 0.48) 100%
     ),
-    radial-gradient(circle at 30% 20%, rgb(255 255 255 / 0.05), transparent 60%),
-    var(--leather);
-  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.25);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+    radial-gradient(circle at 30% 40%, rgb(255 255 255 / 0.05) 0 0.6px, transparent 1.2px),
+    radial-gradient(circle at 70% 70%, rgb(0 0 0 / 0.14) 0 0.7px, transparent 1.4px);
+  background-size:
+    100% 100%,
+    5px 5px,
+    7px 7px;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.28);
   overflow: hidden;
+}
+
+.spinePattern {
+  opacity: 0.13;
 }
 
 .band {
   position: absolute;
   left: 0;
   right: 0;
-  height: calc(3px * var(--scale));
+  height: calc(2px * var(--scale));
   background: var(--band);
   box-shadow: 0 1px 0 rgb(0 0 0 / 0.35);
 }
 
+.glyph {
+  position: absolute;
+  left: 50%;
+  top: calc(30px * var(--scale));
+  width: calc(13px * var(--scale));
+  height: calc(13px * var(--scale));
+  translate: -50% 0;
+  color: var(--foil);
+  filter: drop-shadow(0 0 3px var(--glow));
+}
+
+/* The album's zodiac sign, tooled just above the lower bands. */
+.signGlyph {
+  position: absolute;
+  left: 50%;
+  bottom: calc(13% + 6px * var(--scale));
+  width: calc(12px * var(--scale));
+  height: calc(12px * var(--scale));
+  translate: -50% 0;
+  color: var(--foil);
+  opacity: 0.85;
+}
+
+/* Horizontal box that centers the vertical title; the inner span truncates. */
 .title {
   position: absolute;
-  top: calc(34px * var(--scale));
-  bottom: calc(44px * var(--scale));
+  top: calc(52px * var(--scale));
+  bottom: calc(13% + 24px * var(--scale));
   left: 0;
   right: 0;
   display: flex;
-  align-items: flex-start;
   justify-content: center;
+  align-items: flex-start;
+}
+.title > span {
+  display: block;
+  max-height: 100%;
   writing-mode: vertical-rl;
   /* Rotate all glyphs together so punctuation (’ , :) lines up with the letters. */
   text-orientation: sideways;
-  font-family: var(--font-cormorant), Georgia, serif;
+  font-family: var(--font-title);
   font-weight: 600;
-  font-size: calc(15px * var(--scale));
-  letter-spacing: 0.04em;
-  line-height: 1;
+  font-size: calc(12.5px * var(--scale));
+  letter-spacing: 0.06em;
+  line-height: 1.1;
   color: var(--foil);
-  text-shadow: 0 1px 0 rgb(0 0 0 / 0.4);
+  text-shadow:
+    0 1px 0 rgb(0 0 0 / 0.4),
+    0 0 8px var(--glow);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -192,8 +419,12 @@
 
 .count {
   position: absolute;
-  bottom: calc(16px * var(--scale));
-  font-family: var(--font-inter), system-ui, sans-serif;
+  left: 0;
+  right: 0;
+  bottom: calc(18px * var(--scale));
+  text-align: center;
+  font-family: var(--font-body);
+  font-weight: 600;
   font-size: calc(9px * var(--scale));
   letter-spacing: 0.08em;
   color: var(--foil);
@@ -206,44 +437,6 @@
   width: var(--dd);
   left: calc((var(--w) - var(--dd)) / 2);
   transform: rotateY(90deg) translateZ(calc(var(--w) * 0.5));
-  border-radius: 1px 3px 3px 1px;
-  background:
-    linear-gradient(90deg, rgb(0 0 0 / 0.4), rgb(0 0 0 / 0) 12%),
-    linear-gradient(160deg, rgb(255 255 255 / 0.08), transparent 45%),
-    var(--leather);
-  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.3);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: calc(14px * var(--scale)) calc(12px * var(--scale));
-  gap: calc(8px * var(--scale));
-}
-
-.coverFrame {
-  width: 100%;
-  aspect-ratio: 4 / 5;
-  border: 1px solid var(--band);
-  padding: calc(3px * var(--scale));
-  background: rgb(0 0 0 / 0.15);
-}
-
-.coverFrame img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.coverTitle {
-  font-family: var(--font-cormorant), Georgia, serif;
-  font-size: calc(13px * var(--scale));
-  line-height: 1.15;
-  text-align: center;
-  color: var(--foil);
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .top {
@@ -253,22 +446,33 @@
   top: calc((var(--hh) - var(--dd)) / 2);
   transform: rotateX(90deg) translateZ(calc(var(--hh) * 0.5));
   background:
-    repeating-linear-gradient(90deg, #efe6d3 0 1px, #e2d6bd 1px 2px),
+    repeating-linear-gradient(90deg, #f1e9d6 0 1px, #e2d6bb 1px 2px),
     #ece2cc;
   box-shadow: inset 0 0 0 calc(3px * var(--scale)) var(--leather);
 }
 
-/* Contact shadow on the plank */
+/* Levitation glow on the plank, breathing with the book above it. */
 .shadow {
   position: absolute;
   left: 50%;
-  bottom: calc(var(--plank) - 4px);
-  width: 120%;
-  height: 10px;
+  bottom: calc(var(--plank) - 5px);
+  width: 150%;
+  height: 12px;
   transform: translateX(-50%);
-  background: radial-gradient(ellipse at center, rgb(0 0 0 / 0.55), transparent 70%);
+  background: radial-gradient(ellipse at center, rgb(131 217 212 / 0.32), rgb(2 6 18 / 0.45) 45%, transparent 72%);
   pointer-events: none;
-  transition: opacity 400ms ease, transform 400ms ease;
+  animation: breathe var(--period, 6s) var(--ease-float) var(--delay, 0s) infinite alternate;
+  transition: opacity 400ms ease;
+}
+@keyframes breathe {
+  from {
+    transform: translateX(-50%) scaleX(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-50%) scaleX(0.82);
+    opacity: 0.7;
+  }
 }
 
 /* ---------------------------------------------------------------- interaction */
@@ -278,19 +482,23 @@
   .link:hover .book {
     transform: translateZ(calc(var(--dd) * -0.5 + 34px)) translateY(-10px) rotateY(-28deg);
   }
-  .link:hover + .shadow,
+  .float:hover .halo {
+    opacity: 1;
+  }
   .slot:hover .shadow {
-    opacity: 0.5;
-    transform: translateX(-35%) scaleX(1.4);
+    opacity: 0.45;
   }
 }
 
 .link:focus-visible .book {
   transform: translateZ(calc(var(--dd) * -0.5 + 34px)) translateY(-10px) rotateY(-28deg);
 }
+.float:focus-within .halo {
+  opacity: 1;
+}
 
 .link:focus-visible .spine {
-  outline: 2px solid var(--gold);
+  outline: 2px solid var(--aurora);
   outline-offset: 3px;
 }
 
@@ -304,26 +512,28 @@
 .newBook {
   width: calc(60px * var(--scale));
   height: calc(214px * var(--scale));
-  border: 1.5px dashed rgb(212 187 138 / 0.45);
+  border: 1.5px dashed rgb(232 215 139 / 0.4);
   border-radius: 3px;
-  background: rgb(255 255 255 / 0.025);
-  color: var(--gold-soft);
+  background: linear-gradient(to bottom, rgb(232 215 139 / 0.06), rgb(131 217 212 / 0.03));
+  color: var(--moon);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   gap: calc(14px * var(--scale));
   padding-top: calc(18px * var(--scale));
+  box-shadow: 0 0 24px -10px rgb(232 215 139 / 0.4);
   transition:
-    transform 400ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 400ms var(--ease-out-soft),
     background-color 200ms ease,
-    border-color 200ms ease;
+    border-color 200ms ease,
+    box-shadow 300ms ease;
 }
 
 .newBook span {
   writing-mode: vertical-rl;
   text-orientation: sideways;
-  font-family: var(--font-cormorant), Georgia, serif;
+  font-family: var(--font-title);
   font-size: calc(16px * var(--scale));
   letter-spacing: 0.06em;
 }
@@ -331,59 +541,179 @@
 @media (hover: hover) {
   .link:hover .newBook {
     transform: translateY(-8px);
-    background: rgb(212 187 138 / 0.08);
-    border-color: rgb(212 187 138 / 0.8);
+    border-color: rgb(232 215 139 / 0.8);
+    box-shadow: 0 0 30px -6px rgb(232 215 139 / 0.55);
   }
 }
 
 .link:focus-visible .newBook {
   transform: translateY(-8px);
-  border-color: var(--gold);
+  border-color: var(--moon);
   border-style: solid;
 }
 
 /* ---------------------------------------------------------------- opening from the shelf */
 
-/* Shelf entrance: books rise onto the shelf, staggered. */
-.slot {
-  animation: shelf-rise 560ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
-  animation-delay: calc(var(--i, 0) * 28ms);
-}
-@keyframes shelf-rise {
-  from {
-    opacity: 0;
-    translate: 0 18px;
-  }
-  to {
-    opacity: 1;
-    translate: 0 0;
-  }
-}
-
-.shelves .slot {
-  transition:
-    opacity 380ms ease,
-    filter 380ms ease;
-}
-
 /* While one book is being taken out, the rest of the shelf recedes. */
 .dimmed .slot:not(.opening) {
-  opacity: 0.32;
-  filter: saturate(0.5) brightness(0.8);
+  opacity: 0.3;
+  filter: saturate(0.5) brightness(0.75);
 }
 
 .opening {
   z-index: 30;
 }
+.opening .float {
+  animation-play-state: paused;
+}
 
-/* Pull the chosen book out, turn its cover to the reader, and lift it. */
+/* Pull the chosen book out, turn its cover to the reader, and lift it into the light. */
 .opening .book,
 .opening .link:hover .book,
 .opening .link:focus-visible .book {
   transform: translateZ(calc(var(--dd) * -0.5 + 150px)) translateY(-26px) rotateY(-82deg) scale(1.18);
   transition: transform 620ms cubic-bezier(0.3, 0.7, 0.2, 1);
 }
+.opening .halo {
+  opacity: 1;
+  transform: scale(1.9);
+}
 
 .opening .shadow {
   opacity: 0;
+}
+
+/* Calm the levitation for people who prefer less motion. */
+@media (prefers-reduced-motion: reduce) {
+  .float,
+  .shadow {
+    animation: none;
+  }
+}
+
+/* ================================================================ Floating library */
+
+/* No shelves: every book drifts on its own above a slowly turning magic circle. */
+.field {
+  --scale: 1;
+  --row: 0px;
+  --plank: 0px;
+  position: relative;
+  isolation: isolate;
+  padding: 36px clamp(4px, 2vw, 24px) 150px;
+}
+@media (max-width: 640px) {
+  .field {
+    --scale: 0.72;
+    padding-bottom: 96px;
+  }
+}
+
+.fieldList {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  column-gap: calc(18px * var(--scale));
+  row-gap: calc(28px * var(--scale));
+  min-height: 340px;
+}
+
+.field .slot {
+  height: auto;
+  /* Room on the right for the cover each book turns toward the reader. */
+  padding: calc(16px * var(--scale)) calc(84px * var(--scale)) calc(40px * var(--scale)) 0;
+  /* Staggered heights, so the books don't line up like a shelf. */
+  margin-top: calc(var(--offset, 0) * 1px * var(--scale));
+}
+
+/* A deeper, slower drift with a gentle sway. */
+.field .float {
+  animation-name: drift;
+}
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0) rotate(calc(var(--sway, 2deg) * -1));
+  }
+  to {
+    transform: translate3d(0, calc(var(--lift, 4) * -2.6px * var(--scale)), 0) rotate(var(--sway, 2deg));
+  }
+}
+
+/* Each book hangs at its own angle, turned a little to show its cover. */
+.field .book {
+  transform: translateZ(calc(var(--dd) * -0.5)) rotateY(var(--turn, -30deg)) rotateZ(var(--tilt, 0deg));
+  transition: transform 700ms var(--ease-out-soft);
+}
+@media (hover: hover) {
+  .field .link:hover .book {
+    transform: translateZ(calc(var(--dd) * -0.5 + 50px)) translateY(-8px) rotateY(-64deg) rotateZ(0deg);
+  }
+}
+.field .link:focus-visible .book {
+  transform: translateZ(calc(var(--dd) * -0.5 + 50px)) translateY(-8px) rotateY(-64deg) rotateZ(0deg);
+}
+.field .link:active .book {
+  transform: translateZ(calc(var(--dd) * -0.5 + 30px)) rotateY(-48deg) scale(0.98);
+}
+
+/* A pool of light under each floating book instead of a shelf shadow. */
+.field .shadow {
+  bottom: 4px;
+  width: 190%;
+  height: 18px;
+  background: radial-gradient(ellipse at center, rgb(232 215 139 / 0.22), rgb(131 217 212 / 0.08) 45%, transparent 72%);
+}
+
+.field .opening .book,
+.field .opening .link:hover .book,
+.field .opening .link:focus-visible .book {
+  transform: translateZ(calc(var(--dd) * -0.5 + 190px)) translateY(-20px) rotateY(-84deg) rotateZ(0deg) scale(1.2);
+  transition: transform 640ms cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+
+.field .newBook {
+  transform: rotate(-4deg);
+}
+
+/* ================================================================ Great Tree */
+/* (tree layout lives in tree.module.css; only the hollow rows are here) */
+
+/* Books stand in arched hollows carved into the trunk. */
+.trunkRows {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: calc(var(--row) * 2);
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  column-gap: calc(5px * var(--scale));
+  padding-inline: clamp(16px, 4vw, 56px);
+  background:
+    /* a living-wood ledge with moss along its lip */
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(var(--row) - var(--plank)),
+      rgb(111 174 138 / 0.85) calc(var(--row) - var(--plank)),
+      #574233 calc(var(--row) - var(--plank) + 2px),
+      #3d2d22 calc(var(--row) - 6px),
+      #241a13 var(--row)
+    ),
+    /* a glowing star emblem carved above each hollow */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 300' preserveAspectRatio='xMidYMin slice'%3E%3Cg fill='none' stroke='%2383d9d4' stroke-width='1'%3E%3Ccircle cx='15' cy='14' r='11'/%3E%3Ccircle cx='15' cy='14' r='7.5' stroke-opacity='.5'/%3E%3C/g%3E%3Cpath d='M15 5Q16.2 12.8 24 14Q16.2 15.2 15 23Q13.8 15.2 6 14Q13.8 12.8 15 5Z' fill='%23a8f0ea'/%3E%3C/svg%3E") 50% 2px / 30px var(--row) repeat-y,
+    /* a thin line of moss and light tracing each arch */
+    radial-gradient(ellipse 62% 102% at 50% 100%, transparent 95.2%, rgb(111 174 138 / 0.55) 95.8%, transparent 96.6%) 0 0 / 100% var(--row) repeat-y,
+    /* the wood around each arched hollow */
+    radial-gradient(ellipse 62% 102% at 50% 100%, transparent 96%, rgb(54 40 31 / 0.94) 100%) 0 0 / 100% var(--row) repeat-y,
+    /* lantern light pooling inside each hollow */
+    radial-gradient(ellipse 55% 70% at 50% 96%, rgb(232 184 106 / 0.16), transparent 70%) 0 0 / 100% var(--row) repeat-y,
+    /* shadow under the hollow's ceiling */
+    repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.55) 0, transparent 50px, transparent var(--row)),
+    /* wood grain */
+    repeating-linear-gradient(90deg, rgb(0 0 0 / 0.16) 0 1px, transparent 1px 7px, rgb(255 255 255 / 0.03) 7px 8px, transparent 8px 13px),
+    #140d09;
 }

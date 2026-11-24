@@ -1,4 +1,13 @@
+import { existsSync } from "node:fs";
 import type { NextConfig } from "next";
+
+/**
+ * Background music: drop a licensed track at public/audio/starlight.mp3 and it is
+ * picked up at build time (restart `npm run dev` after adding it). Without the
+ * file, the music controls show it as unavailable and nothing is requested.
+ */
+const MUSIC_FILE = "audio/starlight.mp3";
+const musicSrc = existsSync(`public/${MUSIC_FILE}`) ? `/${MUSIC_FILE}` : "";
 
 const securityHeaders = [
   // Never render inside another site's frame (clickjacking).
@@ -16,6 +25,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  env: { NEXT_PUBLIC_MUSIC_SRC: musicSrc },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

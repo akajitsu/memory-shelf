@@ -1,0 +1,132 @@
+/* The Floating library's magic circle and twinkles. Decorative, compositor-only motion. */
+
+.circleWrap {
+  position: absolute;
+  z-index: 0;
+  left: 50%;
+  bottom: 18px;
+  width: min(980px, 104%);
+  aspect-ratio: 1;
+  translate: -50% 0;
+  /* Seen from above at a low angle: a flattened ring under the books. */
+  transform: scaleY(0.24);
+  transform-origin: 50% 100%;
+  pointer-events: none;
+  animation: circle-in 1800ms var(--ease-out-soft) both;
+}
+@keyframes circle-in {
+  from {
+    opacity: 0;
+    scale: 0.85;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+.circle {
+  width: 100%;
+  height: 100%;
+  animation: spin 90s linear infinite;
+}
+.circleInner {
+  transform-box: view-box;
+  transform-origin: 200px 200px;
+  animation: spin 50s linear infinite reverse;
+}
+@keyframes spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+.glow {
+  position: absolute;
+  z-index: 0;
+  left: 50%;
+  bottom: 40px;
+  width: min(820px, 90%);
+  height: 220px;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 80%, rgb(131 217 212 / 0.14), rgb(232 215 139 / 0.06) 45%, transparent 70%);
+  pointer-events: none;
+}
+
+.twinkle {
+  position: absolute;
+  z-index: 0;
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: var(--s);
+  color: var(--c);
+  opacity: 0;
+  pointer-events: none;
+  animation: twinkle var(--d) ease-in-out var(--delay) infinite;
+}
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.5) rotate(0deg);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1) rotate(45deg);
+  }
+}
+
+.glow {
+  animation: circle-pulse 6s ease-in-out infinite alternate;
+}
+@keyframes circle-pulse {
+  from {
+    opacity: 0.6;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Zodiac glyphs rising out of the magic circle. */
+.rising {
+  position: absolute;
+  z-index: 0;
+  left: var(--x);
+  bottom: 60px;
+  width: var(--s);
+  height: var(--s);
+  color: var(--c);
+  opacity: 0;
+  filter: drop-shadow(0 0 6px currentColor);
+  pointer-events: none;
+  animation: glyph-rise var(--d) ease-out var(--delay) infinite;
+}
+@keyframes glyph-rise {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(-10deg) scale(0.7);
+  }
+  15% {
+    opacity: 0.85;
+  }
+  70% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--sway), -320px, 0) rotate(14deg) scale(1.05);
+  }
+}
+
+/* A cat sitting at the edge of the circle. */
+.perch {
+  position: absolute;
+  z-index: 2;
+  left: clamp(4px, 6%, 80px);
+  bottom: 30px;
+  width: clamp(48px, 5.4vw, 68px);
+  pointer-events: none;
+}

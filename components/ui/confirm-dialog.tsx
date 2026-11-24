@@ -51,20 +51,20 @@ export function ConfirmDialog({
         // Click on the backdrop (the dialog element itself) closes it.
         if (e.target === e.currentTarget && !pending) onClose();
       }}
-      className="m-auto w-[min(92vw,440px)] rounded-2xl border border-parchment bg-ivory p-0 text-ink shadow-2xl backdrop:bg-walnut-deep/70 backdrop:backdrop-blur-sm opacity-0 scale-95 transition-[opacity,scale,overlay,display] transition-discrete duration-200 ease-out open:opacity-100 open:scale-100 starting:open:opacity-0 starting:open:scale-95 backdrop:opacity-0 backdrop:transition-[opacity,overlay,display] backdrop:transition-discrete backdrop:duration-200 open:backdrop:opacity-100 starting:open:backdrop:opacity-0"
+      className="night-panel m-auto w-[min(92vw,440px)] rounded-2xl p-0 text-ivory backdrop:bg-abyss/75 opacity-0 scale-95 transition-[opacity,scale,overlay,display] transition-discrete duration-200 ease-out open:opacity-100 open:scale-100 starting:open:opacity-0 starting:open:scale-95 backdrop:opacity-0 backdrop:transition-[opacity,overlay,display] backdrop:transition-discrete backdrop:duration-200 open:backdrop:opacity-100 starting:open:backdrop:opacity-0"
     >
       <div className="p-6">
         <div className="flex gap-4">
           {tone === "danger" && (
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-danger/10 text-danger">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-danger/12 text-danger">
               <AlertTriangle className="size-5" aria-hidden />
             </span>
           )}
           <div className="space-y-2">
-            <h2 id={titleId} className="font-serif text-2xl leading-tight text-walnut">
+            <h2 id={titleId} className="font-display text-[21px] leading-tight text-ivory">
               {title}
             </h2>
-            <div id={descId} className="text-sm leading-relaxed text-muted">
+            <div id={descId} className="text-sm leading-relaxed text-silver">
               {children}
             </div>
           </div>

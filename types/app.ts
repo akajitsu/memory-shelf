@@ -1,11 +1,13 @@
-/** An album as shown on the bookshelf. */
+import type { BookDesign, BookPattern } from "@/lib/book-design";
+
+/** An album as shown on the bookshelf: a physical book (no photographs outside). */
 export type ShelfAlbum = {
   id: string;
   title: string;
   description: string | null;
   coverColor: string;
-  /** Short-lived signed URL for the private cover image, if any. */
-  coverUrl: string | null;
+  coverDesign: BookDesign;
+  coverPattern: BookPattern;
   photoCount: number;
 };
 
@@ -25,4 +27,6 @@ export type AlbumPhotoView = {
   name: string | null;
   caption: string | null;
   order: number;
+  /** When the photo was added to the album (ISO timestamp). */
+  addedAt: string;
 };

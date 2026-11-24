@@ -16,10 +16,10 @@ export function FormAlert({
     <div
       role={tone === "error" ? "alert" : "status"}
       className={cn(
-        "flex gap-2.5 rounded-lg border px-3.5 py-3 text-sm leading-relaxed",
-        tone === "error" && "border-danger/25 bg-danger/[0.06] text-danger",
-        tone === "success" && "border-success/25 bg-success/[0.07] text-success",
-        tone === "info" && "border-gold/30 bg-gold/[0.08] text-ink",
+        "flex gap-2.5 rounded-xl border px-3.5 py-3 text-sm leading-relaxed",
+        tone === "error" && "border-danger/30 bg-danger/[0.08] text-danger",
+        tone === "success" && "border-success/30 bg-success/[0.08] text-success",
+        tone === "info" && "border-aurora/25 bg-aurora/[0.07] text-ivory",
         className,
       )}
     >

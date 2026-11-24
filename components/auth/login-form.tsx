@@ -47,7 +47,7 @@ export function LoginForm({ next, notice }: { next?: string; notice?: { tone: "e
           <FormAlert tone="error">
             {state.message}
             {state.code === "email_not_confirmed" && (
-              <span className="mt-1 block text-ink">
+              <span className="mt-1 block text-ivory">
                 Didn’t get it? Use “Resend verification email” below.
               </span>
             )}
@@ -73,7 +73,7 @@ export function LoginForm({ next, notice }: { next?: string; notice?: { tone: "e
           required
           error={errors.password}
           labelAside={
-            <Link href="/forgot-password" className="text-[13px] text-leather underline-offset-4 hover:underline">
+            <Link href="/forgot-password" className="text-[13px] text-aurora underline-offset-4 hover:underline">
               Forgot password?
             </Link>
           }
@@ -97,9 +97,9 @@ export function LoginForm({ next, notice }: { next?: string; notice?: { tone: "e
         </form>
       )}
 
-      <p className="mt-8 text-center text-sm text-muted">
+      <p className="mt-8 text-center text-sm text-silver/75">
         New here?{" "}
-        <Link href="/register" className="font-medium text-leather underline-offset-4 hover:underline">
+        <Link href="/register" className="font-medium text-aurora underline-offset-4 hover:underline">
           Create your library
         </Link>
       </p>

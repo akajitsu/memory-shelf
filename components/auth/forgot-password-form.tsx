@@ -44,7 +44,7 @@ export function ForgotPasswordForm() {
       )}
       <Link
         href="/login"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-leather underline-offset-4 hover:underline"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-aurora underline-offset-4 hover:underline"
       >
         <ArrowLeft className="size-4" aria-hidden /> Back to sign in
       </Link>

@@ -1,7 +1,12 @@
-import { PHOTOS_PER_PAGE } from "@/lib/constants";
 import type { AlbumPhotoView } from "@/types/app";
 
-export type PageLayout = "single" | "stack" | "offset";
+/**
+ * single    — one photograph, given the whole page
+ * stack     — two prints, one above the other
+ * offset    — two prints, overlapping corners
+ * scrapbook — three taped prints, loosely arranged
+ */
+export type PageLayout = "single" | "stack" | "offset" | "scrapbook";
 
 export type AlbumPage =
   | { kind: "title" }
@@ -9,10 +14,24 @@ export type AlbumPage =
   | { kind: "empty" }
   | { kind: "end" };
 
+/** The rhythm of the album: pages cycle through these, so spreads feel composed. */
+const CYCLE: { count: number; layout: PageLayout }[] = [
+  { count: 2, layout: "stack" },
+  { count: 3, layout: "scrapbook" },
+  { count: 1, layout: "single" },
+  { count: 2, layout: "offset" },
+];
+
+function layoutFor(count: number, planned: PageLayout): PageLayout {
+  if (count === 1) return "single";
+  if (count === 2) return planned === "offset" ? "offset" : "stack";
+  return "scrapbook";
+}
+
 /**
- * Lay photos out into pages: a title page first, then PHOTOS_PER_PAGE photos per
- * page with a layout chosen deterministically by page number, so the album looks
- * composed rather than gridded and stays identical between sessions.
+ * Lay photos out into pages: a title page first, then photo pages following the
+ * cycle above (deterministic, so the album looks identical between sessions),
+ * then a closing page.
  */
 export function buildPages(photos: AlbumPhotoView[]): AlbumPage[] {
   const pages: AlbumPage[] = [{ kind: "title" }];
@@ -20,20 +39,14 @@ export function buildPages(photos: AlbumPhotoView[]): AlbumPage[] {
     pages.push({ kind: "empty" });
     return pages;
   }
-  for (let i = 0, n = 1; i < photos.length; i += PHOTOS_PER_PAGE, n++) {
-    const chunk = photos.slice(i, i + PHOTOS_PER_PAGE);
-    const layout: PageLayout = chunk.length === 1 ? "single" : n % 2 === 1 ? "stack" : "offset";
-    pages.push({ kind: "photos", photos: chunk, layout, number: n });
+  for (let i = 0, n = 1; i < photos.length; n++) {
+    const plan = CYCLE[(n - 1) % CYCLE.length];
+    const chunk = photos.slice(i, i + plan.count);
+    pages.push({ kind: "photos", photos: chunk, layout: layoutFor(chunk.length, plan.layout), number: n });
+    i += chunk.length;
   }
   pages.push({ kind: "end" });
   return pages;
-}
-
-/** Group pages into facing spreads (left, right). A trailing odd page gets a blank partner. */
-export function toSpreads(pages: AlbumPage[]): [AlbumPage, AlbumPage | null][] {
-  const spreads: [AlbumPage, AlbumPage | null][] = [];
-  for (let i = 0; i < pages.length; i += 2) spreads.push([pages[i], pages[i + 1] ?? null]);
-  return spreads;
 }
 
 /** Small, stable tilt per photo for a hand-placed look (degrees). */

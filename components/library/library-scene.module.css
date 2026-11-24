@@ -1,0 +1,402 @@
+/*
+ * The library around the shelf. Behind the page content (z-index -1 inside the
+ * content layer), above the sky. Decorative, no pointer events, compositor-only motion.
+ */
+
+.scene {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  animation: scene-in 1600ms var(--ease-out-soft) both;
+}
+@keyframes scene-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* The distant rotunda of floating shelves. */
+.archiveWrap {
+  position: absolute;
+  inset: 0;
+}
+.archive {
+  position: absolute;
+  left: 50%;
+  bottom: -6vh;
+  width: max(1500px, 128vw);
+  max-width: none;
+  translate: -50% 0;
+  opacity: 0.6;
+  -webkit-mask-image: linear-gradient(to top, black 45%, transparent 92%);
+  mask-image: linear-gradient(to top, black 45%, transparent 92%);
+  animation:
+    archive-in 2200ms var(--ease-out-soft) both,
+    archive-float 18s ease-in-out 2200ms infinite alternate;
+}
+@keyframes archive-float {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-14px);
+  }
+}
+@keyframes archive-in {
+  from {
+    opacity: 0;
+    transform: scale(1.04) translateY(16px);
+  }
+  to {
+    opacity: 0.6;
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------------------------ floating tomes */
+
+.layer {
+  position: absolute;
+  inset: 0;
+}
+
+.tome {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--w);
+  opacity: var(--o, 0.9);
+  filter: drop-shadow(0 12px 18px rgb(2 6 18 / 0.55));
+  animation:
+    tome-in 1800ms var(--ease-out-soft) var(--in, 0ms) both,
+    hover var(--period, 8s) var(--ease-float) var(--delay, 0s) infinite alternate;
+}
+.tome svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.spin svg {
+  animation: sway calc(var(--period, 8s) * 1.7) var(--ease-float) infinite alternate;
+}
+.glowTome {
+  filter: drop-shadow(0 0 14px rgb(232 215 139 / 0.35)) drop-shadow(0 12px 18px rgb(2 6 18 / 0.5));
+}
+
+@keyframes tome-in {
+  from {
+    opacity: 0;
+    scale: 0.85;
+  }
+  to {
+    opacity: var(--o, 0.9);
+    scale: 1;
+  }
+}
+@keyframes hover {
+  from {
+    transform: translate3d(0, 0, 0) rotate(var(--r, -8deg));
+  }
+  to {
+    transform: translate3d(var(--dx, 4px), calc(var(--amp, 14px) * -1), 0) rotate(calc(var(--r, -8deg) + var(--dr, 4deg)));
+  }
+}
+@keyframes sway {
+  from {
+    transform: rotate(-6deg);
+  }
+  to {
+    transform: rotate(8deg);
+  }
+}
+
+/* A small book drifting slowly across the hall. */
+.wanderer {
+  position: absolute;
+  top: 16vh;
+  left: 0;
+  width: 34px;
+  opacity: 0;
+  animation: wander 95s linear 6s infinite;
+}
+.wanderer svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  animation: sway 7s var(--ease-float) infinite alternate;
+}
+@keyframes wander {
+  0% {
+    opacity: 0;
+    transform: translate3d(-60px, 0, 0);
+  }
+  8% {
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate3d(50vw, -6vh, 0);
+  }
+  92% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(calc(100vw + 60px), 4vh, 0);
+  }
+}
+
+/* ------------------------------------------------------------------ the open book */
+
+.openBook {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--w);
+  animation:
+    tome-in 2000ms var(--ease-out-soft) 500ms both,
+    hover 9s var(--ease-float) infinite alternate;
+  --r: 3deg;
+  --dr: -4deg;
+  --amp: 10px;
+}
+.openBook svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.openBook .light {
+  position: absolute;
+  inset: -40% 10% 30%;
+  background: radial-gradient(ellipse at 50% 90%, rgb(232 215 139 / 0.28), transparent 65%);
+  animation: pulse 5s var(--ease-float) infinite alternate;
+}
+@keyframes pulse {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Motes of light rising out of the gutter. */
+.spark {
+  position: absolute;
+  left: var(--sx);
+  bottom: 38%;
+  width: var(--ss);
+  height: var(--ss);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff6d2 0 25%, rgb(232 215 139 / 0.5) 45%, transparent 70%);
+  opacity: 0;
+  animation: lift var(--sd) ease-out var(--sdelay) infinite;
+}
+@keyframes lift {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--sdx), -140px, 0);
+  }
+}
+
+/* ------------------------------------------------------------------ symbols & lanterns */
+
+.symbol {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  font-family: var(--font-heading);
+  font-size: var(--size);
+  line-height: 1;
+  color: var(--c);
+  opacity: 0;
+  text-shadow: 0 0 12px currentColor;
+  animation:
+    symbol-in 3s ease var(--in) both,
+    hover var(--period) var(--ease-float) var(--delay) infinite alternate;
+  --r: 0deg;
+  --dr: 12deg;
+  --amp: 18px;
+}
+@keyframes symbol-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: var(--o);
+  }
+}
+
+.lantern {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff3c4 0 6%, rgb(232 215 139 / 0.35) 20%, rgb(232 215 139 / 0.08) 45%, transparent 70%);
+  animation: pulse var(--period) var(--ease-float) var(--delay) infinite alternate;
+}
+
+/* ------------------------------------------------------------------ the great tree */
+
+.hollow {
+  position: absolute;
+  inset: -3%;
+  width: 106%;
+  height: 106%;
+  max-width: none;
+  object-fit: cover;
+  animation: hollow-in 1600ms ease both;
+}
+@keyframes hollow-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.firefly {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff3c4 0 25%, rgb(232 184 106 / 0.55) 45%, transparent 72%);
+  box-shadow: 0 0 10px 2px rgb(232 184 106 / 0.35);
+  opacity: 0;
+  animation: firefly var(--d) ease-in-out var(--delay) infinite;
+}
+@keyframes firefly {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0);
+  }
+  20% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 0.35;
+    transform: translate3d(var(--dx), var(--dy), 0);
+  }
+  75% {
+    opacity: 0.95;
+  }
+}
+
+.shafts {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.shaft {
+  position: absolute;
+  top: -12vh;
+  left: var(--l);
+  width: var(--w);
+  height: 130vh;
+  rotate: var(--r);
+  transform-origin: 50% 0;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgb(232 222 170 / 0.08) 30%,
+    rgb(232 222 170 / 0.12) 50%,
+    rgb(232 222 170 / 0.08) 70%,
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(to bottom, black, black 40%, transparent 90%);
+  mask-image: linear-gradient(to bottom, black, black 40%, transparent 90%);
+  animation: shaft var(--d) ease-in-out var(--delay, 0s) infinite alternate;
+}
+@keyframes shaft {
+  from {
+    opacity: 0.45;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(12px);
+  }
+}
+
+/* Glowing leaves drifting down through the hollow. */
+.leaf {
+  position: absolute;
+  top: -6vh;
+  left: var(--x);
+  width: var(--s);
+  height: calc(var(--s) * 0.62);
+  border-radius: 0 100% 0 100%;
+  background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 40%, #0c1f22));
+  box-shadow: 0 0 10px -2px var(--c);
+  opacity: 0;
+  animation: leaf-fall var(--d) linear var(--delay) infinite;
+}
+@keyframes leaf-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  8% {
+    opacity: 0.85;
+  }
+  25% {
+    transform: translate3d(var(--sway), 28vh, 0) rotate(120deg);
+  }
+  50% {
+    transform: translate3d(calc(var(--sway) * -0.6), 56vh, 0) rotate(220deg);
+  }
+  75% {
+    transform: translate3d(var(--sway), 84vh, 0) rotate(330deg);
+  }
+  92% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 112vh, 0) rotate(420deg);
+  }
+}
+
+/* A cat asleep on the roots at the foot of the hollow. */
+.rootSleeper {
+  position: absolute;
+  left: 4vw;
+  bottom: 3vh;
+  width: 110px;
+  height: 40px;
+}
+
+/* ------------------------------------------------------------------ small screens */
+
+@media (max-width: 1279px) {
+  .wideOnly {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .hideSmall {
+    display: none;
+  }
+  .archive {
+    width: 1100px;
+    opacity: 0.45;
+  }
+}

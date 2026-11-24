@@ -67,6 +67,12 @@ export function prepareAudio() {
   for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
 }
 
+/** The shared AudioContext (created on demand), for other audio such as background music. */
+export function getAudioContext(): AudioContext | null {
+  if (!ctx) prepareAudio();
+  return ctx;
+}
+
 /** Resume audio inside a user gesture (creating the engine first if it isn't ready). */
 export function unlockAudio() {
   if (!ctx) prepareAudio();

@@ -28,10 +28,10 @@ export default function AuthErrorPage({ searchParams }: PageProps<"/auth/error">
         <Reason searchParams={searchParams} />
       </Suspense>
       <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium">
-        <Link href="/login" className="text-leather underline-offset-4 hover:underline">
+        <Link href="/login" className="text-aurora underline-offset-4 hover:underline">
           Sign in
         </Link>
-        <Link href="/forgot-password" className="text-leather underline-offset-4 hover:underline">
+        <Link href="/forgot-password" className="text-aurora underline-offset-4 hover:underline">
           Request a new reset link
         </Link>
       </div>

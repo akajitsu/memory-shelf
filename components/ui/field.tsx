@@ -5,9 +5,9 @@ import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const inputClass =
-  "h-11 w-full rounded-lg border border-parchment bg-ivory px-3.5 text-[15px] text-ink shadow-[inset_0_1px_2px_rgb(58_51_44/0.06)] " +
-  "placeholder:text-muted/70 transition-colors focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/25 " +
-  "aria-[invalid=true]:border-danger/70 aria-[invalid=true]:focus:ring-danger/20 disabled:opacity-60";
+  "h-11 w-full rounded-xl border border-ivory/12 bg-abyss/60 px-3.5 text-[15px] text-ivory shadow-[inset_0_1px_2px_rgb(0_0_0/0.35)] " +
+  "placeholder:text-silver/45 transition-colors hover:border-ivory/20 focus:border-aurora/60 focus:outline-none focus:ring-2 focus:ring-aurora/20 " +
+  "aria-[invalid=true]:border-danger/60 aria-[invalid=true]:focus:ring-danger/20 disabled:opacity-60";
 
 type FieldProps = InputHTMLAttributes<HTMLInputElement> & {
   label: string;
@@ -30,7 +30,7 @@ export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
   return (
     <div className="space-y-1.5">
       <div className="flex items-baseline justify-between gap-2">
-        <label htmlFor={inputId} className="text-sm font-medium text-ink">
+        <label htmlFor={inputId} className="text-[13px] font-semibold tracking-wide text-silver">
           {label}
         </label>
         {labelAside}
@@ -49,7 +49,7 @@ export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
           <button
             type="button"
             onClick={() => setReveal((r) => !r)}
-            className="absolute inset-y-0 right-0 flex w-11 cursor-pointer items-center justify-center rounded-r-lg text-muted hover:text-ink"
+            className="absolute inset-y-0 right-0 flex w-11 cursor-pointer items-center justify-center rounded-r-xl text-silver/70 hover:text-ivory"
             aria-label={reveal ? "Hide password" : "Show password"}
             aria-pressed={reveal}
           >
@@ -62,7 +62,7 @@ export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
           {error}
         </p>
       ) : hint ? (
-        <p id={`${inputId}-hint`} className="text-[13px] text-muted">
+        <p id={`${inputId}-hint`} className="text-[13px] text-silver/70">
           {hint}
         </p>
       ) : null}

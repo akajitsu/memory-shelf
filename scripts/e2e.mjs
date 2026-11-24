@@ -153,32 +153,42 @@ await step("user A signs in", async () => {
   check("session cookie holds a valid access token", typeof tokenA === "string" && tokenA.split(".").length === 3);
 });
 
-await step("create album with cover", async () => {
+await step("create album with a designed book and a first photo", async () => {
   await a.goto(`${BASE}/albums/new`, { waitUntil: "networkidle" });
   await a.fill("input[name=title]", title);
   await a.fill("#album-description", "Created by the end-to-end test.");
-  await a.click("button[aria-label=Forest]");
-  await a.setInputFiles("input[aria-label='Cover photo file']", photos[0]);
-  await a.getByText("Cover photo selected").waitFor();
+  await a.click("button[role=radio][aria-label^='Astrolabe']");
+  await a.click("button[aria-label=Moss]");
+  await a.click("button[aria-label=Constellations]");
+  check("no cover-photo upload is offered", (await a.locator("input[aria-label='Cover photo file']").count()) === 0);
+  await a.setInputFiles("input[aria-label='Photographs for the album pages']", photos[0]);
+  await a.locator("ul[aria-label='Photographs to add'] img").first().waitFor();
   await a.getByRole("button", { name: "Create album" }).click();
-  await a.waitForURL(/\/albums\/[0-9a-f-]{36}/, { timeout: 30000 });
+  await a.waitForURL(/\/albums\/[0-9a-f-]{36}/, { timeout: 60000 });
   albumId = a.url().match(/albums\/([0-9a-f-]{36})/)[1];
   await a.waitForSelector("[role=region][aria-busy=false]", { timeout: 15000 });
   check("album created and opened", !!albumId, albumId);
-  const { status, json } = await rest(tokenA, `/rest/v1/albums?id=eq.${albumId}&select=cover_image_path,cover_color`).then(
-    async (r) => ({ status: r.status, json: await r.json() }),
+  const { status, json } = await rest(
+    tokenA,
+    `/rest/v1/albums?id=eq.${albumId}&select=cover_image_path,cover_color,cover_design,cover_pattern,album_photos(count)`,
+  ).then(async (r) => ({ status: r.status, json: await r.json() }));
+  const row = json[0];
+  check(
+    "album row saved with book design, pattern and color (no cover photo)",
+    status === 200 && row?.cover_color === "#2f4a3a" && row?.cover_design === "astrolabe" && row?.cover_pattern === "constellations" && !row?.cover_image_path,
+    JSON.stringify(row),
   );
-  check("album row saved with cover path and color", status === 200 && json[0]?.cover_image_path && json[0]?.cover_color === "#2f4a3a");
+  check("photo chosen in the create form was added inside the album", row?.album_photos?.[0]?.count === 1);
   await shot(a, "a-album-new");
 });
 
 await step("upload photos", async () => {
   await a.goto(`${BASE}/albums/${albumId}/photos`, { waitUntil: "networkidle" });
-  await a.setInputFiles("input[aria-label='Choose photos to upload']", [...photos.slice(1), fakeExe]);
+  await a.setInputFiles("input[aria-label='Choose photos to upload']", [...photos.slice(1, 3), fakeExe]);
   await a.waitForTimeout(800);
   check("disguised executable flagged before upload", (await a.getByText("isn’t a supported image").count()) > 0);
-  await a.getByRole("button", { name: /^Upload 3 photos/ }).click();
-  await a.getByText("3 photos added").waitFor({ timeout: 60000 });
+  await a.getByRole("button", { name: /^Upload 2 photos/ }).click();
+  await a.getByText("2 photos added").waitFor({ timeout: 60000 });
   await a.reload({ waitUntil: "networkidle" });
   check("3 photos listed after upload", (await a.locator("ul li textarea").count()) === 3);
   const srcs = await a.locator("ul li img").evaluateAll((els) => els.map((e) => e.getAttribute("src")));
@@ -235,6 +245,27 @@ await step("edit album", async () => {
   await shot(a, "a-library");
 });
 
+await step("library styles", async () => {
+  await a.goto(`${BASE}/library`, { waitUntil: "networkidle" });
+  for (const [name, key] of [
+    ["Floating Library", "floating"],
+    ["Great Tree", "tree"],
+  ]) {
+    await a.getByRole("radio", { name }).click();
+    await a.waitForTimeout(700);
+    const books = await a
+      .locator(`[data-library-style=${key}] [role=list] a[aria-label^='Open album: ${title}']`)
+      .filter({ visible: true })
+      .count();
+    check(`${name} style shows the album as an openable book`, books === 1);
+  }
+  await shot(a, "a-library-tree");
+  await a.reload({ waitUntil: "networkidle" });
+  check("chosen library style is remembered after reload", (await a.locator("[data-library-style=tree]").filter({ visible: true }).count()) === 1);
+  await a.getByRole("radio", { name: "Moonlit Shelves" }).click();
+  await a.waitForTimeout(400);
+});
+
 await step("mobile layouts", async () => {
   const m = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
   await m.addCookies(await ctxA.cookies());
@@ -279,10 +310,11 @@ await step("user B isolation (direct API)", async () => {
   const del = await rest(tokenB, `/rest/v1/albums?id=eq.${albumId}`, { method: "DELETE", headers: { prefer: "return=representation" } }).then((r) => r.json());
   check("API: B cannot delete A's album", Array.isArray(del) && del.length === 0);
 
-  const { data: aRow } = { data: await rest(tokenA, `/rest/v1/albums?id=eq.${albumId}&select=user_id,cover_image_path`).then((r) => r.json()) };
-  const coverPath = aRow[0].cover_image_path;
-  const sign = await rest(tokenB, `/storage/v1/object/sign/album-photos/${coverPath}`, { method: "POST", body: JSON.stringify({ expiresIn: 60 }) });
-  check("Storage: B cannot create a link to A's cover photo", sign.status >= 400, `HTTP ${sign.status}`);
+  const { data: aRow } = { data: await rest(tokenA, `/rest/v1/albums?id=eq.${albumId}&select=user_id`).then((r) => r.json()) };
+  const photoRows = await rest(tokenA, `/rest/v1/album_photos?album_id=eq.${albumId}&select=image_path&limit=1`).then((r) => r.json());
+  const photoPath = photoRows[0].image_path;
+  const sign = await rest(tokenB, `/storage/v1/object/sign/album-photos/${photoPath}`, { method: "POST", body: JSON.stringify({ expiresIn: 60 }) });
+  check("Storage: B cannot create a link to A's photo", sign.status >= 400, `HTTP ${sign.status}`);
   const list = await rest(tokenB, `/storage/v1/object/list/album-photos`, {
     method: "POST",
     body: JSON.stringify({ prefix: `${aRow[0].user_id}/${albumId}/`, limit: 100 }),
@@ -337,7 +369,7 @@ await step("delete photo and album", async () => {
     method: "POST",
     body: JSON.stringify({ prefix: `${owner}/${albumId}/`, limit: 100 }),
   }).then((r) => r.json());
-  check("all files (photos, thumbnails, cover) removed from storage", Array.isArray(files) && files.length === 0, `${files.length ?? "?"} left`);
+  check("all files (photos and thumbnails) removed from storage", Array.isArray(files) && files.length === 0, `${files.length ?? "?"} left`);
 });
 
 await step("sign out", async () => {

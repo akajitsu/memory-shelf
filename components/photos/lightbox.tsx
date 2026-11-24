@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { AlbumPhotoView } from "@/types/app";
+import { formatDay } from "@/lib/dates";
 
 /** Full-size photo viewer on a native <dialog>. Arrow keys move, Esc closes. */
 export function Lightbox({
@@ -39,7 +40,7 @@ export function Lightbox({
   }, [open, index, photos.length, onIndexChange]);
 
   const navBtn =
-    "absolute top-1/2 z-10 flex size-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-black/40 text-ivory backdrop-blur transition hover:bg-black/60 disabled:pointer-events-none disabled:opacity-0";
+    "absolute top-1/2 z-10 flex size-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-ivory/12 bg-cosmos/70 text-ivory transition hover:border-aurora/45 hover:text-aurora disabled:pointer-events-none disabled:opacity-0";
 
   return (
     <dialog
@@ -52,14 +53,14 @@ export function Lightbox({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="m-0 h-dvh max-h-none w-screen max-w-none bg-transparent p-0 backdrop:bg-[#0d0905]/92 opacity-0 scale-95 transition-[opacity,scale,overlay,display] transition-discrete duration-200 ease-out open:opacity-100 open:scale-100 starting:open:opacity-0 starting:open:scale-95 backdrop:opacity-0 backdrop:transition-[opacity,overlay,display] backdrop:transition-discrete backdrop:duration-200 open:backdrop:opacity-100 starting:open:backdrop:opacity-0"
+      className="m-0 h-dvh max-h-none w-screen max-w-none bg-transparent p-0 backdrop:bg-abyss/95 opacity-0 scale-95 transition-[opacity,scale,overlay,display] transition-discrete duration-200 ease-out open:opacity-100 open:scale-100 starting:open:opacity-0 starting:open:scale-95 backdrop:opacity-0 backdrop:transition-[opacity,overlay,display] backdrop:transition-discrete backdrop:duration-200 open:backdrop:opacity-100 starting:open:backdrop:opacity-0"
     >
       {photo && index !== null && (
         <div className="relative flex size-full flex-col items-center justify-center gap-4 p-4 sm:p-10" onClick={(e) => e.target === e.currentTarget && onClose()}>
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-4 right-4 z-10 flex size-11 cursor-pointer items-center justify-center rounded-full bg-black/40 text-ivory hover:bg-black/60"
+            className="absolute top-4 right-4 z-10 flex size-11 cursor-pointer items-center justify-center rounded-full border border-ivory/12 bg-cosmos/70 text-ivory hover:border-aurora/45 hover:text-aurora"
             aria-label="Close photo viewer"
           >
             <X className="size-5" />
@@ -83,13 +84,13 @@ export function Lightbox({
               key={photo.id}
               src={photo.url}
               alt={photo.caption ?? photo.name ?? "Photograph"}
-              className="max-h-[78dvh] max-w-full rounded-sm object-contain shadow-2xl"
+              className="max-h-[76dvh] max-w-full rounded-sm object-contain shadow-[0_30px_80px_-20px_rgb(0_0_0/0.9),0_0_60px_-20px_rgb(232_215_139/0.25)]"
             />
           )}
           <div className="max-w-2xl text-center">
-            {photo.caption && <p className="font-serif text-xl text-ivory italic">{photo.caption}</p>}
-            <p className="mt-1 text-xs text-ivory/50">
-              {index + 1} of {photos.length}
+            {photo.caption && <p className="font-serif text-[22px] leading-snug text-ivory italic">{photo.caption}</p>}
+            <p className="mt-1.5 text-xs text-silver/60">
+              {index + 1} of {photos.length} · Added {formatDay(photo.addedAt)}
               {photo.name && ` · ${photo.name}`}
             </p>
           </div>

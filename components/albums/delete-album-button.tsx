@@ -27,7 +27,7 @@ export function DeleteAlbumButton({ albumId, title, photoCount }: { albumId: str
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Delete this album"
-        className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg px-3 text-sm sm:px-3.5 text-ivory/70 transition-colors hover:bg-danger/15 hover:text-[#f2b8ad]"
+        className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-full px-3 text-sm font-medium text-silver/80 transition-colors hover:bg-danger/12 hover:text-danger sm:px-3.5"
       >
         <Trash2 className="size-4" aria-hidden /> <span className="hidden sm:inline">Delete</span>
       </button>
@@ -40,7 +40,7 @@ export function DeleteAlbumButton({ albumId, title, photoCount }: { albumId: str
         confirmLabel={pending ? "Deleting…" : "Delete album"}
       >
         <p>
-          <strong className="font-medium text-ink">“{title}”</strong>
+          <strong className="font-semibold text-ivory">“{title}”</strong>
           {photoCount > 0
             ? ` and its ${photoCount} ${photoCount === 1 ? "photograph" : "photographs"} will be permanently deleted.`
             : " will be permanently deleted."}{" "}

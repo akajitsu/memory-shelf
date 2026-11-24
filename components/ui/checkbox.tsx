@@ -9,13 +9,13 @@ type CheckboxProps = Omit<InputHTMLAttributes<HTMLInputElement>, "type"> & {
 export function Checkbox({ label, error, id, className, ...props }: CheckboxProps) {
   return (
     <div className="space-y-1">
-      <label htmlFor={id} className={cn("flex cursor-pointer items-start gap-2.5 text-sm text-ink", className)}>
+      <label htmlFor={id} className={cn("flex cursor-pointer items-start gap-2.5 text-sm text-silver", className)}>
         <input
           id={id}
           type="checkbox"
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? `${id}-error` : undefined}
-          className="mt-0.5 size-4 shrink-0 cursor-pointer rounded border-parchment accent-walnut"
+          className="mt-0.5 size-4 shrink-0 cursor-pointer rounded accent-[#83d9d4]"
           {...props}
         />
         <span className="leading-snug">{label}</span>

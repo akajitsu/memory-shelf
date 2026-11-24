@@ -38,12 +38,12 @@ export function RegisterForm() {
   if (state.status === "success") {
     return (
       <div className="space-y-6 text-center">
-        <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-gold/15 text-leather">
+        <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-aurora/12 text-aurora">
           <MailCheck className="size-7" aria-hidden />
         </div>
         <div className="space-y-2">
-          <h2 className="font-serif text-3xl text-walnut">Check your inbox</h2>
-          <p className="text-[15px] text-muted">{state.message}</p>
+          <h2 className="font-display text-[26px] text-ivory">Check your inbox</h2>
+          <p className="text-[15px] text-silver/75">{state.message}</p>
         </div>
         <form action={resendAction} className="space-y-3">
           <input type="hidden" name="email" value={state.values?.email ?? ""} />
@@ -54,7 +54,7 @@ export function RegisterForm() {
             <FormAlert tone={resendState.status === "error" ? "error" : "success"}>{resendState.message}</FormAlert>
           )}
         </form>
-        <Link href="/login" className="inline-block text-sm font-medium text-leather underline-offset-4 hover:underline">
+        <Link href="/login" className="inline-block text-sm font-medium text-aurora underline-offset-4 hover:underline">
           Back to sign in
         </Link>
       </div>
@@ -64,7 +64,7 @@ export function RegisterForm() {
   return (
     <div>
       <GoogleButton label="Sign up with Google" />
-      <p className="mt-2 text-center text-xs text-muted">
+      <p className="mt-2 text-center text-xs text-silver/75">
         By continuing with Google you agree to the{" "}
         <Link href="/terms" className="underline underline-offset-2">
           Terms
@@ -121,7 +121,7 @@ export function RegisterForm() {
           label={
             <>
               I agree to the{" "}
-              <Link href="/terms" className="text-leather underline underline-offset-2" target="_blank">
+              <Link href="/terms" className="text-aurora underline underline-offset-2" target="_blank">
                 Terms &amp; Privacy Policy
               </Link>
               .
@@ -134,9 +134,9 @@ export function RegisterForm() {
         </Button>
       </form>
 
-      <p className="mt-8 text-center text-sm text-muted">
+      <p className="mt-8 text-center text-sm text-silver/75">
         Already have a library?{" "}
-        <Link href="/login" className="font-medium text-leather underline-offset-4 hover:underline">
+        <Link href="/login" className="font-medium text-aurora underline-offset-4 hover:underline">
           Sign in
         </Link>
       </p>
